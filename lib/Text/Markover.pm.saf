@@ -1,0 +1,101 @@
+package Text::Markover;
+
+use strict;
+use warnings;
+use HOP::Lexer ();
+use HOP::Parser ':all';
+
+sub new {
+    my $class = shift;
+    bless {} => $class;
+}
+
+sub lexer {
+    my ($self, $iter) = @_;
+    HOP::Lexer::make_lexer(
+        $iter,
+        [ SPACE  => qr/[ \t]/ ],
+        [ EOL    => qr/$/m ],
+        [ SOL    => qr/^/m ],
+        [ BLANK  => qr/\n\s*?\n/ ],
+        [ NEWLINE => qr/\n/ ],
+        [ ESCAPE => qr/\\[\\*_`]/ ],
+        [ BULLET => qr/^[ \t]*[-*+][ \t]+/ ],
+        [ OP     => qr/[*_`()\[\]]{1,2}/ ],
+        [ TEXT   => qr/\S+/ ], # anything else.
+    )
+}
+
+my $lparen = match( OP => '(' );
+my $rparen = match( OP => ')' );
+my $lbrack = match( OP => '[' );
+my $rbrack = match( OP => ']' );
+my $blank  = lookfor('BLANK');
+my $text   = lookfor('TEXT');
+my $strong  = lookfor('STRONG');
+
+my ($blocks, $spans);
+my $Blocks = parser { $blocks->(@_) };
+my $Spans  = parser { $spans->(@_)  };
+
+my $span = alternate(
+    $text#, $strong
+);
+
+my $formatters = {
+    html => {
+        para => sub { '<p>' . $_[1] . '</p>' },
+    }
+};
+
+my $para = T(
+    star(alternate($Spans)),
+    $formatters->{html}{para}
+);
+
+my $block = T(alternate($para), sub { shift } );
+$blocks = T(
+    alternate(
+        $block,
+        concatenate(
+            $block,
+            $blank,
+            $blocks
+        ),
+    ),
+    sub { shift },
+);
+
+sub parse {
+    my ($self, $stream) = @_;
+    my $doc = error( T(
+        concatenate( $Blocks, \&End_of_Input ),
+        sub { $_[0] },
+    ) );
+    my ( $output, $remainder ) = eval { $doc->($stream) };
+    return $output;
+}
+
+sub markover {
+    my $self = shift;
+    my $text = \@_;
+    my $lexer = $self->lexer( sub { shift @{ $text } });
+    $self->parse($lexer);
+}
+
+1;
+
+=pod
+
+document   ::= blocks 'End_Of_Input'
+blocks     ::= block | block blank blocks
+block      ::= para | codeblock | header | blockquote | list | horizrule
+             | reference | html
+
+para       ::= span | span spans
+span       ::= strong | em | code | link | image | autolink | html | text
+
+strongop   ::= '**' | '__'
+strong     ::= /strongop(?!\s|$) spans (?!\s|^)strongop
+
+=cut
