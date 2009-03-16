@@ -51,6 +51,7 @@ my $newline = lookfor('NEWLINE');
 my $blank   = lookfor('BLANK');
 my $joiner  = sub { join '', @_ };
 
+# string ::= ( STRING | ESCAPE)+
 my $string  = T(
     plus(
         alternate(
@@ -61,7 +62,7 @@ my $string  = T(
     $joiner,
 );
 
-# text ::= string (newline text)*
+# text ::= string (NEWLINE text)*
 my $text;
 my $Text = parser { $text->(@_) };
 $text = T(
@@ -80,7 +81,7 @@ $text = T(
     $joiner
 );
 
-# eof  ::= 'NEWLINE'* 'End_of_Input'
+# eof  ::= NEWLINE* 'End_of_Input'
 my $eof = T(
     concatenate(
         star($newline),
@@ -89,10 +90,10 @@ my $eof = T(
     sub { shift->[0] || '' }
 );
 
-# eob  ::= 'BLANK' | eof
+# eob  ::= BLANK | eof
 my $eob = alternate( $blank, $eof );
 
-# para ::= 'TEXT' eob
+# para ::= text eob
 my $para = T(
     concatenate(
         $text,
