@@ -18,14 +18,48 @@ sub lexer {
         $iter,
         [ BLANK   => qr/\s*\n\s*?\n\s*/ms, ],
         [ NEWLINE => qr/\n/ms ],
+        [ ESCAPE  => qr/\\[-+.!#()\[\]{}_*`\\]/ ],
         [ STRING  => qr/.+/ms ], # anything else.
     ))
 }
 
-my $string  = lookfor('STRING');
+# Matches one or more times.
+sub plus {
+    my $p = shift;
+    T(
+        concatenate( $p, star($p) ),
+        sub {
+            my ( $first, $rest ) = @_;
+            [ $first, @$rest ];
+        }
+    );
+}
+
+# Matches zero or one time.
+sub qmark {
+    my $p = shift;
+    T(
+        alternate($p, \&nothing),
+        sub {
+            my ( $first, $rest ) = @_;
+            [ $first, @$rest ];
+        }
+    );
+}
+
 my $newline = lookfor('NEWLINE');
 my $blank   = lookfor('BLANK');
 my $joiner  = sub { join '', @_ };
+
+my $string  = T(
+    plus(
+        alternate(
+            lookfor('STRING'),
+            lookfor(ESCAPE => sub {  substr shift->[1], 1; })
+        ),
+    ),
+    $joiner,
+);
 
 # text ::= string (newline text)*
 my $text;

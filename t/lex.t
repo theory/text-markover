@@ -9,7 +9,7 @@ use HOP::Stream;
 BEGIN { use_ok 'Text::Markover' or die }
 
 my @markover = split /(\n)/, 'This is a *test*. It is __only__ a `test`.
-If this had been an \*actual\* emergency, _well,
+If this had been an \\*actual\\* emergency, _well,
 you_ would `know` it!';
 
 my $lexer = Text::Markover->lexer( sub { shift @markover } );
@@ -22,7 +22,11 @@ while ($lexer) {
 is_deeply \@toks, [
     [ STRING  => 'This is a *test*. It is __only__ a `test`.' ],
     [ NEWLINE => "\n" ],
-    [ STRING  => 'If this had been an \*actual\* emergency, _well,' ],
+    [ STRING  => 'If this had been an ' ],
+    [ ESCAPE  => '\\*' ],
+    [ STRING  => 'actual' ],
+    [ ESCAPE  => '\\*' ],
+    [ STRING  => ' emergency, _well,' ],
     [ NEWLINE => "\n" ],
     [ STRING  => 'you_ would `know` it!' ],
 ], 'Simple lexer should generate correct tokens';
