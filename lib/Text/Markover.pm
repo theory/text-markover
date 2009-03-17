@@ -17,8 +17,15 @@ sub lexer {
     HOP::Stream::iterator_to_stream( HOP::Lexer::make_lexer(
         $iter,
         [ BLANK   => qr/\s*\n\s*?\n\s*/ms, ],
+        [ CODE    => qr/``.*?``|`[^`]*`/ms, sub {
+              my ($l, $c) = @_;
+              $c =~ s/^`(?:`[ ]?)?//;
+              $c =~ s/(?:[ ]?`)?`?$//;
+              $c =~ s/\\`/`/g;
+              [ $l => $c ];
+        } ],
         [ NEWLINE => qr/\n/ms ],
-        [ ESCAPE  => qr/\\[-+.!#()\[\]{}_*`\\]/ ],
+        [ ESCAPE  => qr/\\[-+.!#()\[\]{}_*`\\]/, sub { [ shift, substr shift, 1 ] } ],
         [ STRING  => qr/.+/ms ], # anything else.
     ))
 }
@@ -56,7 +63,7 @@ my $string  = T(
     plus(
         alternate(
             lookfor('STRING'),
-            lookfor(ESCAPE => sub {  substr shift->[1], 1; })
+            lookfor('ESCAPE'),
         ),
     ),
     $joiner,
@@ -93,10 +100,30 @@ my $eof = T(
 # eob  ::= BLANK | eof
 my $eob = alternate( $blank, $eof );
 
-# para ::= text eob
+sub entitize($) {
+    local $_ = shift;
+    s/&/&amp;/g;
+    s/</&lt;/g;
+    s/>/&gt;/g;
+    $_;
+}
+
+# code ::= CODE
+my $code = lookfor( CODE => sub { '<code>' . entitize(shift->[1]) . '</code>' } );
+
+
+# spans ::= (text | code)+
+my $spans = T(plus(
+    T(
+        alternate( $text, $code ),
+        $joiner,
+    )
+), $joiner);
+
+# para ::= spans eob
 my $para = T(
     concatenate(
-        $text,
+        $spans,
         $eob,
     ),
     sub { '<p>' . $_[0] . '</p>' . $_[1] }
