@@ -132,7 +132,7 @@ my $para = T(
 # doc ::= para*
 my $doc = T(
     star($para),
-    sub { join '', @_ },
+    $joiner,
 );
 
 sub parse {
