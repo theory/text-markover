@@ -5,9 +5,8 @@ use warnings;
 use HOP::Lexer ();
 use HOP::Parser ':all';
 use HOP::Stream ();
-use Data::Dumper;
-use URI::URL;
-
+use URI::URL ();
+#use Data::Dumper;
 
 sub new {
     my $class = shift;
