@@ -6,6 +6,8 @@ use HOP::Lexer ();
 use HOP::Parser ':all';
 use HOP::Stream ();
 use Data::Dumper;
+use URI::URL;
+
 
 sub new {
     my $class = shift;
@@ -31,6 +33,11 @@ sub lexer {
         } ],
         [ NEWLINE => qr/\n|\r\n?/ms, sub { [ shift, "\n" ] } ],
         [ ESCAPE  => qr/\\[-+.!#()\[\]{}_*`\\]/, sub { [ shift, substr shift, 1 ] } ],
+        [ URL     => qr/$URI::scheme_re:[$URI::uric][$URI::uric#]*/, sub {
+              my ($l, $url) = @_;
+              my $u = eval { URI::URL->new($url) };
+              return $@ && !defined $u ? $url : [ $l => $url ];
+        } ],
         [ STRING  => qr/.+/ms ], # anything else.
     );
 }

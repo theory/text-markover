@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 54;
+use Test::More tests => 63;
 #use Test::More 'no_plan';
 use Data::Dumper;
 use HOP::Stream;
@@ -62,6 +62,21 @@ for my $spec (
     [ '`` `code` ``', [[ CODE => '`code`' ]], 'a double backtick code span with backticks' ],
     [ '`` ` ``', [[ CODE => '`' ]], 'a double backtick code span with just an embedded backtick' ],
     [ '``(`)``', [[ CODE => '(`)' ]], 'a double backtick code span with embedded backtick' ],
+
+    # URLs.
+    [ 'http://example.com', [[ URL => 'http://example.com']], 'an http URL' ],
+    [ 'http://example.com/', [[ URL => 'http://example.com/']], 'an http URL with slash' ],
+    [ 'http://example.com/foo/bar', [[ URL => 'http://example.com/foo/bar']], 'an http URL with path' ],
+    [ 'http://example.com/?', [[ URL => 'http://example.com/?']], 'an http URL with slash and ?' ],
+    [ 'http://example.com?foo', [[ URL => 'http://example.com?foo']], 'an http URL with query' ],
+    [ 'mailto:foo@bar.com', [[ URL => 'mailto:foo@bar.com']], 'a mailto URL' ],
+    [ 'ftp://ftp.site.org', [[ URL => 'ftp://ftp.site.org']], 'an FTP URL' ],
+    [ 'gopher://moo.foo.com', [[ URL => 'gopher://moo.foo.com']], 'a gopher URL' ],
+    [
+        'http://www.deja.com/%5BST_rn=ps%5D/qs.xp?ST=PS&svcclass=dnyr&QRY=lwall',
+        [[ URL => 'http://www.deja.com/%5BST_rn=ps%5D/qs.xp?ST=PS&svcclass=dnyr&QRY=lwall']],
+        'a long URL with path and query'
+    ],
 ) {
     my $toks = get_toks $spec->[0];
     is_deeply $toks, $spec->[1], "Lexing $spec->[2] should work"
