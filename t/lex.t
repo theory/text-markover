@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 39;
+use Test::More tests => 54;
 #use Test::More 'no_plan';
 use Data::Dumper;
 use HOP::Stream;
@@ -13,9 +13,8 @@ sub get_toks {
     my @text = @_;
     my @toks;
     my $lexer = Text::Markover->lexer( sub { shift @text } );
-    while ($lexer) {
-        push @toks, HOP::Stream::head($lexer);
-        $lexer = HOP::Stream::tail($lexer);
+    while (my $tok = $lexer->()) {
+        push @toks, $tok;
     }
     return \@toks;
 
@@ -23,15 +22,39 @@ sub get_toks {
 
 # Basic lexing.
 for my $spec (
+    # Simple tokens.
     [ 'Foo', [[ STRING => 'Foo' ]], 'one word' ],
     [ "\n",  [[ NEWLINE => "\n" ]], 'a newline' ],
+    [ "\r\n",  [[ NEWLINE => "\n" ]], 'a Windows newline' ],
+    [ "\r",  [[ NEWLINE => "\n" ]], 'a Mac newline' ],
+
+    # Unix blank lines.
     [ "\n\n", [[ BLANK => "\n\n" ]], 'a blank line' ],
+    [ "\n\n\n", [[ BLANK => "\n\n\n" ]], 'a double blank line' ],
     [ "\n  \n", [[ BLANK => "\n  \n" ]], 'a blank line with spaces' ],
+    [ "\n  \n  \n", [[ BLANK => "\n  \n  \n" ]], 'a double blank line with spaces' ],
     [ "\n \t \n", [[ BLANK => "\n \t \n" ]], 'a blank line with tab' ],
+    [ "\n \t \n \t \n", [[ BLANK => "\n \t \n \t \n" ]], 'a double blank line with tabs' ],
     [ "  \n\n", [[ BLANK => "  \n\n" ]], 'a blank line leading spaces' ],
-    [ "\n\n  ", [[ BLANK => "\n\n  " ]], 'a blank line trailing spaces' ],
-    [ "  \n\n  ", [[ BLANK => "  \n\n  " ]], 'a blank line leading and trailing spaces' ],
-    [ "\t  \n\n  \t", [[ BLANK => "\t  \n\n  \t" ]], 'a blank line leading and trailing tabs' ],
+    [ "  \n\n  \n", [[ BLANK => "  \n\n  \n" ]], 'a double blank line leading spaces' ],
+
+    # Windows blank lines.
+    [ "\r\n\r\n", [[ BLANK => "\n\n" ]], 'a Windows blank line' ],
+    [ "\r\n\r\n\r", [[ BLANK => "\n\n\n" ]], 'a double Windows blank line' ],
+    [ "\r\n  \r\n", [[ BLANK => "\n  \n" ]], 'a Windows blank line with spaces' ],
+    [ "\r\n  \r\n  \r\n", [[ BLANK => "\n  \n  \n" ]], 'a double Windows blank line with spaces' ],
+    [ "\r\n  \t\t \r\n", [[ BLANK => "\n  \t\t \n" ]], 'a Windows blank line with tabs' ],
+    [ "\r\n  \t\t \r\n\r\n", [[ BLANK => "\n  \t\t \n\n" ]], 'a double Windows blank line with tabs' ],
+
+    # Mac blank lines.
+    [ "\r\r", [[ BLANK => "\n\n" ]], 'a Mac blank line' ],
+    [ "\r\r\r", [[ BLANK => "\n\n\n" ]], 'a double Mac blank line' ],
+    [ "\r  \r", [[ BLANK => "\n  \n" ]], 'a Mac blank line with spaces' ],
+    [ "\r  \r  \r", [[ BLANK => "\n  \n  \n" ]], 'a double Mac blank line with spaces' ],
+    [ "\r  \t\t \r", [[ BLANK => "\n  \t\t \n" ]], 'a Mac blank line with tabs' ],
+    [ "\r  \t\t \r\r", [[ BLANK => "\n  \t\t \n\n" ]], 'a double Mac blank line with tabs' ],
+
+    # Code spans.
     [ '`code`', [[ CODE => 'code' ]], 'a simple code span' ],
     [ '`this that`', [[ CODE => 'this that' ]], 'a code span with space' ],
     [ "`this\nthat`", [[ CODE => "this\nthat" ]], 'a code span with a newline' ],

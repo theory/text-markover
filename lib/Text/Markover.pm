@@ -14,20 +14,25 @@ sub new {
 
 sub lexer {
     my ($self, $iter) = @_;
-    HOP::Stream::iterator_to_stream( HOP::Lexer::make_lexer(
+    HOP::Lexer::make_lexer(
         $iter,
-        [ BLANK   => qr/\s*\n\s*?\n\s*/ms, ],
+        [ BLANK   => qr/(?:[ \t]*(?:\n|\r\n?+)){2,}/ms, sub {
+              # Change all line endings to "\n";
+              my ($l, $b) = @_;
+              $b =~ s/\r\n?/\n/g;
+              [ $l => $b ];
+        } ],
         [ CODE    => qr/``.*?``|`[^`]*`/ms, sub {
+              # Strip out the code characters.
               my ($l, $c) = @_;
               $c =~ s/^`(?:`[ ]?)?//;
               $c =~ s/(?:[ ]?`)?`?$//;
-              $c =~ s/\\`/`/g;
               [ $l => $c ];
         } ],
-        [ NEWLINE => qr/\n/ms ],
+        [ NEWLINE => qr/\n|\r\n?/ms, sub { [ shift, "\n" ] } ],
         [ ESCAPE  => qr/\\[-+.!#()\[\]{}_*`\\]/, sub { [ shift, substr shift, 1 ] } ],
         [ STRING  => qr/.+/ms ], # anything else.
-    ))
+    );
 }
 
 # Matches one or more times.
@@ -136,8 +141,8 @@ my $doc = T(
 );
 
 sub parse {
-    my ($self, $stream) = @_;
-    my ( $output, $remainder ) = $doc->($stream);
+    my ($self, $lexer) = @_;
+    my ( $output, $remainder ) = $doc->(HOP::Stream::iterator_to_stream( $lexer ));
     return $output;
 }
 
