@@ -36,7 +36,7 @@ sub lexer {
         [ URL     => qr/$URI::scheme_re:[$URI::uric][$URI::uric#]*/, sub {
               my ($l, $url) = @_;
               my $u = eval { URI::URL->new($url) };
-              return $@ && !defined $u ? $url : [ $l => $url ];
+              return $@ && !defined $u ? $url : [ $l => $u ];
         } ],
         [ STRING  => qr/.+/ms ], # anything else.
     );

@@ -64,17 +64,17 @@ for my $spec (
     [ '``(`)``', [[ CODE => '(`)' ]], 'a double backtick code span with embedded backtick' ],
 
     # URLs.
-    [ 'http://example.com', [[ URL => 'http://example.com']], 'an http URL' ],
-    [ 'http://example.com/', [[ URL => 'http://example.com/']], 'an http URL with slash' ],
-    [ 'http://example.com/foo/bar', [[ URL => 'http://example.com/foo/bar']], 'an http URL with path' ],
-    [ 'http://example.com/?', [[ URL => 'http://example.com/?']], 'an http URL with slash and ?' ],
-    [ 'http://example.com?foo', [[ URL => 'http://example.com?foo']], 'an http URL with query' ],
-    [ 'mailto:foo@bar.com', [[ URL => 'mailto:foo@bar.com']], 'a mailto URL' ],
-    [ 'ftp://ftp.site.org', [[ URL => 'ftp://ftp.site.org']], 'an FTP URL' ],
-    [ 'gopher://moo.foo.com', [[ URL => 'gopher://moo.foo.com']], 'a gopher URL' ],
+    [ 'http://example.com', [[ URL => URI::URL->new('http://example.com')]], 'an http URL' ],
+    [ 'http://example.com/', [[ URL => URI::URL->new('http://example.com/')]], 'an http URL with slash' ],
+    [ 'http://example.com/foo/bar', [[ URL => URI::URL->new('http://example.com/foo/bar')]], 'an http URL with path' ],
+    [ 'http://example.com/?', [[ URL => URI::URL->new('http://example.com/?')]], 'an http URL with slash and ?' ],
+    [ 'http://example.com?foo', [[ URL => URI::URL->new('http://example.com?foo')]], 'an http URL with query' ],
+    [ 'mailto:foo@bar.com', [[ URL => URI::URL->new('mailto:foo@bar.com')]], 'a mailto URL' ],
+    [ 'ftp://ftp.site.org', [[ URL => URI::URL->new('ftp://ftp.site.org')]], 'an FTP URL' ],
+    [ 'gopher://moo.foo.com', [[ URL => URI::URL->new('gopher://moo.foo.com')]], 'a gopher URL' ],
     [
         'http://www.deja.com/%5BST_rn=ps%5D/qs.xp?ST=PS&svcclass=dnyr&QRY=lwall',
-        [[ URL => 'http://www.deja.com/%5BST_rn=ps%5D/qs.xp?ST=PS&svcclass=dnyr&QRY=lwall']],
+        [[ URL => URI::URL->new('http://www.deja.com/%5BST_rn=ps%5D/qs.xp?ST=PS&svcclass=dnyr&QRY=lwall')]],
         'a long URL with path and query'
     ],
 ) {
