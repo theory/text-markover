@@ -2,8 +2,8 @@
 
 use strict;
 use warnings;
-use Test::More tests => 63;
-#use Test::More 'no_plan';
+#use Test::More tests => 64;
+use Test::More 'no_plan';
 use Data::Dumper;
 use HOP::Stream;
 
@@ -63,20 +63,24 @@ for my $spec (
     [ '`` ` ``', [[ CODE => '`' ]], 'a double backtick code span with just an embedded backtick' ],
     [ '``(`)``', [[ CODE => '(`)' ]], 'a double backtick code span with embedded backtick' ],
 
-    # URLs.
-    [ 'http://example.com', [[ URL => URI::URL->new('http://example.com')]], 'an http URL' ],
-    [ 'http://example.com/', [[ URL => URI::URL->new('http://example.com/')]], 'an http URL with slash' ],
-    [ 'http://example.com/foo/bar', [[ URL => URI::URL->new('http://example.com/foo/bar')]], 'an http URL with path' ],
-    [ 'http://example.com/?', [[ URL => URI::URL->new('http://example.com/?')]], 'an http URL with slash and ?' ],
-    [ 'http://example.com?foo', [[ URL => URI::URL->new('http://example.com?foo')]], 'an http URL with query' ],
-    [ 'mailto:foo@bar.com', [[ URL => URI::URL->new('mailto:foo@bar.com')]], 'a mailto URL' ],
-    [ 'ftp://ftp.site.org', [[ URL => URI::URL->new('ftp://ftp.site.org')]], 'an FTP URL' ],
-    [ 'gopher://moo.foo.com', [[ URL => URI::URL->new('gopher://moo.foo.com')]], 'a gopher URL' ],
+    # Autolinks.
+    [ '<http://example.com>', [[ AUTOLINK => URI::URL->new('http://example.com')]], 'an http URL' ],
+    [ '<http://example.com/>', [[ AUTOLINK => URI::URL->new('http://example.com/')]], 'an http URL with slash' ],
+    [ '<http://example.com/foo/bar>', [[ AUTOLINK => URI::URL->new('http://example.com/foo/bar')]], 'an http URL with path' ],
+    [ '<http://example.com/?>', [[ AUTOLINK => URI::URL->new('http://example.com/?')]], 'an http URL with slash and ?' ],
+    [ '<http://example.com?foo>', [[ AUTOLINK => URI::URL->new('http://example.com?foo')]], 'an http URL with query' ],
+    [ '<mailto:foo@bar.com>', [[ AUTOLINK => URI::URL->new('mailto:foo@bar.com')]], 'a mailto URL' ],
+    [ '<ftp://ftp.site.org>', [[ AUTOLINK => URI::URL->new('ftp://ftp.site.org')]], 'an FTP URL' ],
+    [ '<gopher://moo.foo.com>', [[ AUTOLINK => URI::URL->new('gopher://moo.foo.com')]], 'a gopher URL' ],
+    [ '<http://foo.com/?<this>&that>', [[ STRING => '<http://foo.com/?<this>&that>']], 'A URL with brackets should be a string' ],
     [
-        'http://www.deja.com/%5BST_rn=ps%5D/qs.xp?ST=PS&svcclass=dnyr&QRY=lwall',
-        [[ URL => URI::URL->new('http://www.deja.com/%5BST_rn=ps%5D/qs.xp?ST=PS&svcclass=dnyr&QRY=lwall')]],
+        '<http://www.deja.com/%5BST_rn=ps%5D/qs.xp?ST=PS&svcclass=dnyr&QRY=lwall>',
+        [[ AUTOLINK => URI::URL->new('http://www.deja.com/%5BST_rn=ps%5D/qs.xp?ST=PS&svcclass=dnyr&QRY=lwall')]],
         'a long URL with path and query'
     ],
+
+    # Automail.
+    [ '<foo@bar.com>', [[ AUTOMAIL => 'foo@bar.com']], 'an email autolink' ],
 ) {
     my $toks = get_toks $spec->[0];
     is_deeply $toks, $spec->[1], "Lexing $spec->[2] should work"

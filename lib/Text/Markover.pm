@@ -6,6 +6,7 @@ use HOP::Lexer ();
 use HOP::Parser ':all';
 use HOP::Stream ();
 use URI::URL ();
+use Email::Valid;
 #use Data::Dumper;
 
 sub new {
@@ -30,9 +31,16 @@ sub lexer {
               $c =~ s/(?:[ ]?`)?`?$//;
               [ $l => $c ];
         } ],
-        [ NEWLINE => qr/\n|\r\n?/ms, sub { [ shift, "\n" ] } ],
-        [ ESCAPE  => qr/\\[-+.!#()\[\]{}_*`\\]/, sub { [ shift, substr shift, 1 ] } ],
-        [ URL     => qr/$URI::scheme_re:[$URI::uric][$URI::uric#]*/, sub {
+        [ NEWLINE  => qr/\n|\r\n?/ms, sub { [ shift, "\n" ] } ],
+        [ ESCAPE   => qr/\\[-+.!#()\[\]{}_*`\\]/, sub { [ shift, substr shift, 1 ] } ],
+        [ AUTOMAIL => qr/<$Email::Valid::RFC822PAT>/, sub {
+              my $l = shift;
+              my $email = substr shift, 1, -1;
+              return Email::Valid->address( -address => $email)
+                  ? [ $l => $email ]
+                  : "<$email>";
+          } ],
+        [ AUTOLINK => qr/<$URI::scheme_re:[$URI::uric][$URI::uric#]*>/, sub {
               my ($l, $url) = @_;
               my $u = eval { URI::URL->new($url) };
               return $@ && !defined $u ? $url : [ $l => $u ];
@@ -119,14 +127,56 @@ sub entitize($) {
     $_;
 }
 
+my @encode = (
+    sub { '&#' .                 ord(shift)   . ';' },
+    sub { '&#x' . sprintf( "%X", ord(shift) ) . ';' },
+    sub {                            shift          },
+);
+
+sub obscure($) {
+    my $addr = shift;
+    srand;
+
+    $addr =~ s{(.)}{
+        my $char = $1;
+        if ( $char eq '@' ) {
+            # this *must* be encoded. I insist.
+            $encode[int rand 1]->($char);
+        } else {
+            my $r = rand;
+            # roughly 10% raw, 45% hex, 45% dec
+              $r > .9   ?  $encode[2]->($char)
+            : $r < .45  ?  $encode[1]->($char)
+            :              $encode[0]->($char);
+        }
+    }gex;
+
+    return $addr;
+}
+
 # code ::= CODE
 my $code = lookfor( CODE => sub { '<code>' . entitize(shift->[1]) . '</code>' } );
 
+# autolink ::= AUTOLINK
+my $autolink = lookfor( AUTOLINK => sub {
+    my $uri = shift->[1];
+    my ($scheme, $url) = $uri->scheme eq 'mailto'
+        ? ( obscure('mailto') . ':', obscure $uri  )
+        : ( '',                      entitize $uri );
+    return qq{<a href="$scheme$url">$url</a>}
+} );
+
+# automail ::= AUTOMAIL
+my $automail = lookfor( AUTOMAIL => sub {
+    my $scheme = obscure 'mailto';
+    my $email  = obscure shift->[1];
+    return qq{<a href="$scheme:$email">$email</a>}
+} );
 
 # spans ::= (text | code)+
 my $spans = T(plus(
     T(
-        alternate( $text, $code ),
+        alternate( $text, $code, $autolink, $automail ),
         $joiner,
     )
 ), $joiner);
