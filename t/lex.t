@@ -2,8 +2,8 @@
 
 use strict;
 use warnings;
-#use Test::More tests => 64;
-use Test::More 'no_plan';
+use Test::More tests => 78;
+#use Test::More 'no_plan';
 use Data::Dumper;
 use HOP::Stream;
 
@@ -81,6 +81,21 @@ for my $spec (
 
     # Automail.
     [ '<foo@bar.com>', [[ AUTOMAIL => 'foo@bar.com']], 'an email autolink' ],
+
+    # Emphasis characters.
+    [ '*', [[ EMOP => '*']], 'a single *'],
+    [ '*this*', [[ EMOP => '*'], [STRING => 'this'],[ EMOP => '*']], 'a *word*'],
+    [ '**', [[ EMOP => '**']], 'a double *'],
+    [ '**this**', [[ EMOP => '**'], [STRING => 'this'],[ EMOP => '**']], 'a **word**'],
+    [ 'un*frigging*believable' => [[STRING => 'un'], [EMOP => '*'], [STRING => 'frigging'], [EMOP => '*'], [ STRING => 'believable']], 'a mid*word*string' ],
+    [ 'un**frigging**believable' => [[STRING => 'un'], [EMOP => '**'], [STRING => 'frigging'], [EMOP => '**'], [ STRING => 'believable']], 'a mid**word**string' ],
+    [ '_', [[ EMOP => '_']], 'a single _'],
+    [ '_this_', [[ EMOP => '_'], [STRING => 'this'],[ EMOP => '_']], 'a _word_'],
+    [ '__', [[ EMOP => '__']], 'a double _'],
+    [ '__this__', [[ EMOP => '__'], [STRING => 'this'],[ EMOP => '__']], 'a __word__'],
+    [ 'un_frigging_believable' => [[STRING => 'un'], [EMOP => '_'], [STRING => 'frigging'], [EMOP => '_'], [ STRING => 'believable']], 'a mid_word_string' ],
+    [ 'un__frigging__believable' => [[STRING => 'un'], [EMOP => '__'], [STRING => 'frigging'], [EMOP => '__'], [ STRING => 'believable']], 'a mid__word__string' ],
+    [ '__*this*__', [[ EMOP => '__'], [ EMOP => '*'], [STRING => 'this'], [ EMOP => '*'], [ EMOP => '__']], 'a __word__'],
 ) {
     my $toks = get_toks $spec->[0];
     is_deeply $toks, $spec->[1], "Lexing $spec->[2] should work"
@@ -139,7 +154,15 @@ If this had been an \\*actual\\* emergency, _well,
 you_ would `know` it!';
 
 is_deeply get_toks(@markover), [
-    [ STRING  => 'This is a *test*. It is __only__ a ' ],
+    [ STRING  => 'This is a ' ],
+    [ EMOP    => '*' ],
+    [ STRING  => 'test' ],
+    [ EMOP    => '*' ],
+    [ STRING  => '. It is ' ],
+    [ EMOP    => '__' ],
+    [ STRING  => 'only' ],
+    [ EMOP    => '__' ],
+    [ STRING  => ' a ' ],
     [ CODE    => 'test' ],
     [ STRING  => '.' ],
     [ NEWLINE => "\n" ],
@@ -147,9 +170,13 @@ is_deeply get_toks(@markover), [
     [ ESCAPE  => '*' ],
     [ STRING  => 'actual' ],
     [ ESCAPE  => '*' ],
-    [ STRING  => ' emergency, _well,' ],
+    [ STRING  => ' emergency, ' ],
+    [ EMOP    => '_' ],
+    [ STRING  => 'well,' ],
     [ NEWLINE => "\n" ],
-    [ STRING  => 'you_ would '],
+    [ STRING  => 'you' ],
+    [ EMOP    => '_' ],
+    [ STRING  => ' would '],
     [ CODE    => 'know' ],
     [ STRING  => ' it!' ],
 ], 'Simple lexer should generate correct tokens';

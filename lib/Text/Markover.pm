@@ -45,6 +45,7 @@ sub lexer {
               my $u = eval { URI::URL->new($url) };
               return $@ && !defined $u ? $url : [ $l => $u ];
         } ],
+        [ EMOP => qr/[_]{1,2}|[*]{1,2}/ ],
         [ STRING  => qr/.+/ms ], # anything else.
     );
 }
@@ -73,16 +74,26 @@ sub qmark {
     );
 }
 
-my $newline = lookfor('NEWLINE');
-my $blank   = lookfor('BLANK');
+sub lookahead {
+    my $p = ref $_[0] eq 'CODE' ? shift : lookfor @_;
+    parser {
+        my $input = shift;
+        # Check only the first returned value.
+        my ($res) = $p->($input);
+        return $res ? ( undef, $input ) : ();
+    };
+}
+
+my $newline = match 'NEWLINE';
+my $blank   = match 'BLANK';
 my $joiner  = sub { join '', @_ };
 
 # string ::= ( STRING | ESCAPE)+
 my $string  = T(
     plus(
         alternate(
-            lookfor('STRING'),
-            lookfor('ESCAPE'),
+            match('STRING'),
+            match('ESCAPE'),
         ),
     ),
     $joiner,
@@ -118,6 +129,7 @@ my $eof = T(
 
 # eob  ::= BLANK | eof
 my $eob = alternate( $blank, $eof );
+my $eob_ahead = lookahead($eob);
 
 sub entitize($) {
     local $_ = shift;
@@ -129,7 +141,7 @@ sub entitize($) {
 
 my @encode = (
     sub { '&#' .                 ord(shift)   . ';' },
-    sub { '&#x' . sprintf( "%X", ord(shift) ) . ';' },
+    sub { '&#x' . sprintf( '%X', ord(shift) ) . ';' },
     sub {                            shift          },
 );
 
@@ -154,6 +166,9 @@ sub obscure($) {
     return $addr;
 }
 
+my $spans;
+my $Spans = parser { $spans->(@_) };
+
 # code ::= CODE
 my $code = lookfor( CODE => sub { '<code>' . entitize(shift->[1]) . '</code>' } );
 
@@ -173,10 +188,35 @@ my $automail = lookfor( AUTOMAIL => sub {
     return qq{<a href="$scheme:$email">$email</a>}
 } );
 
-# spans ::= (text | code)+
-my $spans = T(plus(
+my $sstar   = match EMOP => '*';
+my $suscore = match EMOP => '_';
+my $dstar   = match EMOP => '**';
+my $duscore = match EMOP => '__';
+
+# emphasis ::= sstar spans (sstar | lookahead(eob))
+#            | suscore spans (suscore | lookahead(eob))
+my $emphasis = T(
+    alternate(
+        concatenate( $sstar,   $Spans, alternate($sstar,   $eob_ahead) ),
+        concatenate( $suscore, $Spans, alternate($suscore, $eob_ahead) ),
+    ),
+    sub { "<em>$_[1]</em>" }
+);
+
+# strong ::= dstar spans (dstar | lookahead(eob))
+#          | duscore spans (duscore | lookahead(eob))
+my $strong = T(
+    alternate(
+        concatenate( $dstar,   $Spans, alternate($dstar,   $eob_ahead) ),
+        concatenate( $duscore, $Spans, alternate($duscore, $eob_ahead) ),
+    ),
+    sub { "<strong>$_[1]</strong>" }
+);
+
+# spans ::= (text | code | autolink | automail | emphasis | strong)+
+$spans = T(plus(
     T(
-        alternate( $text, $code, $autolink, $automail ),
+        alternate( $text, $code, $autolink, $automail, $emphasis, $strong ),
         $joiner,
     )
 ), $joiner);
@@ -184,7 +224,7 @@ my $spans = T(plus(
 # para ::= spans eob
 my $para = T(
     concatenate(
-        $spans,
+        $Spans,
         $eob,
     ),
     sub { '<p>' . $_[0] . '</p>' . $_[1] }
