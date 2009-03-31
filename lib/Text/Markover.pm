@@ -3,6 +3,7 @@ package Text::Markover;
 use strict;
 use warnings;
 use HOP::Lexer ();
+use lib '/Users/david/Downloads/HOP-Parser-0.01/lib';
 use HOP::Parser ':all';
 use HOP::Stream ();
 use URI::URL ();
@@ -62,33 +63,29 @@ sub plus {
     );
 }
 
-# Matches zero or one time.
-sub qmark {
-    my $p = shift;
-    T(
-        alternate($p, \&nothing),
-        sub {
-            my ( $first, $rest ) = @_;
-            [ $first, @$rest ];
-        }
-    );
-}
-
 sub lookahead {
     my $p = ref $_[0] eq 'CODE' ? shift : lookfor @_;
     parser {
-        my $input = shift;
-        # Check only the first returned value.
-        my ($res) = $p->($input);
-        return $res ? ( undef, $input ) : ();
-    };
+        my $input = shift or return;
+        my @ret = eval { $p->($input) };
+        return @ret ? (undef, $input) : ();
+    },
 }
+
+# sub neg_lookahead {
+#     my $p = ref $_[0] eq 'CODE' ? shift : lookfor @_;
+#     parser {
+#         my $input = shift or return;
+#         my @ret = eval { $p->($input) };
+#         return @ret ? () : (undef, $input);
+#     },
+# }
 
 my $newline = match 'NEWLINE';
 my $blank   = match 'BLANK';
 my $joiner  = sub { join '', @_ };
 
-# string ::= ( STRING | ESCAPE)+
+# string ::= ( STRING | ESCAPE )+
 my $string  = T(
     plus(
         alternate(
@@ -129,7 +126,7 @@ my $eof = T(
 
 # eob  ::= BLANK | eof
 my $eob = alternate( $blank, $eof );
-my $eob_ahead = lookahead($eob);
+my $eob_ahead = error(lookahead($eob));
 
 sub entitize($) {
     local $_ = shift;
@@ -188,38 +185,45 @@ my $automail = lookfor( AUTOMAIL => sub {
     return qq{<a href="$scheme:$email">$email</a>}
 } );
 
-my $sstar   = match EMOP => '*';
-my $suscore = match EMOP => '_';
-my $dstar   = match EMOP => '**';
-my $duscore = match EMOP => '__';
+my $sstar   = absorb match EMOP => '*';
+my $suscore = absorb match EMOP => '_';
+my $not_em;
+my $Not_em = parser { $not_em->(@_) };
 
-# emphasis ::= sstar spans (sstar | lookahead(eob))
-#            | suscore spans (suscore | lookahead(eob))
+# emphasis ::= sstar not_em (sstar | lookahead(eob))
+#            | suscore not_em (suscore | lookahead(eob))
 my $emphasis = T(
     alternate(
-        concatenate( $sstar,   $Spans, alternate($sstar,   $eob_ahead) ),
-        concatenate( $suscore, $Spans, alternate($suscore, $eob_ahead) ),
+        concatenate( $sstar,   $Not_em, alternate($sstar,   $eob_ahead) ),
+        concatenate( $suscore, $Not_em, alternate($suscore, $eob_ahead) ),
     ),
-    sub { "<em>$_[1]</em>" }
+    sub { "<em>$_[0]</em>" }
 );
 
-# strong ::= dstar spans (dstar | lookahead(eob))
-#          | duscore spans (duscore | lookahead(eob))
+my $dstar   = absorb match EMOP => '**';
+my $duscore = absorb match EMOP => '__';
+my $not_strong;
+my $Not_strong = parser { $not_strong->(@_) };
+
+# strong ::= dstar not_strong (dstar | lookahead(eob))
+#          | duscore not_strong (duscore | lookahead(eob))
 my $strong = T(
     alternate(
-        concatenate( $dstar,   $Spans, alternate($dstar,   $eob_ahead) ),
-        concatenate( $duscore, $Spans, alternate($duscore, $eob_ahead) ),
+        concatenate( $dstar,   $Not_strong, alternate($dstar,   $eob_ahead) ),
+        concatenate( $duscore, $Not_strong, alternate($duscore, $eob_ahead) ),
     ),
-    sub { "<strong>$_[1]</strong>" }
+    sub { "<strong>$_[0]</strong>" }
 );
 
 # spans ::= (text | code | autolink | automail | emphasis | strong)+
-$spans = T(plus(
-    T(
-        alternate( $text, $code, $autolink, $automail, $emphasis, $strong ),
-        $joiner,
-    )
-), $joiner);
+my @spans   = ($text, $code, $autolink, $automail, $strong, $emphasis);
+$spans      = T(plus( T( alternate( @spans ), $joiner, ) ), $joiner);
+
+# not_em ::= (text | code | autolink | automail | strong)+
+$not_em     = T(plus( T( alternate( grep { $_ ne $emphasis } @spans ), $joiner, ) ), $joiner);
+
+# not_strong ::= (text | code | autolink | automail | strong)+
+$not_strong = T(plus( T( alternate( grep { $_ ne $strong } @spans ), $joiner, ) ), $joiner);
 
 # para ::= spans eob
 my $para = T(

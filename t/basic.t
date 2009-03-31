@@ -2,8 +2,8 @@
 
 use strict;
 use warnings;
-#use Test::More tests => 11;
-use Test::More 'no_plan';
+use Test::More tests => 37;
+#use Test::More 'no_plan';
 
 BEGIN { use_ok 'Text::Markover' or die; }
 
@@ -11,9 +11,9 @@ ok my $m = Text::Markover->new, 'Contruct Markover object';
 
 for my $spec (
     # Paragraphs.
-    [ "Foo\n\nBar"    => "<p>Foo</p>\n\n<p>Bar</p>", ' with paras' ],
-    [ "Foo\n\nBar\n"  => "<p>Foo</p>\n\n<p>Bar</p>\n", 'with trailing newline' ],
-    [ "Foo\nBar\n"    => "<p>Foo\nBar</p>\n", 'with inline newline' ],
+    [ "Foo\n\nBar"   => "<p>Foo</p>\n\n<p>Bar</p>", ' with paras' ],
+    [ "Foo\n\nBar\n" => "<p>Foo</p>\n\n<p>Bar</p>\n", 'with trailing newline' ],
+    [ "Foo\nBar\n"   => "<p>Foo\nBar</p>\n", 'with inline newline' ],
 
     # Escapes.
     [ "\\*Foo\\* Bar" => "<p>*Foo* Bar</p>", ' with escapes' ],
@@ -33,7 +33,10 @@ for my $spec (
     [ "*this"        => "<p><em>this</em></p>", 'with simple * emphasis and eof' ],
     [ "*this\n\n"    => "<p><em>this</em></p>\n\n", 'with simple * emphasis and eob' ],
     [ "*this\n\nfoo" => "<p><em>this</em></p>\n\n<p>foo</p>", 'with simple * emphasis and eob + para' ],
-    [ 'un*frigging*believable' => '<p>un<em>frigging</em>believable</p>', 'with mid-word emphasis' ],
+    [ 'un*frigging*believable' => '<p>un<em>frigging</em>believable</p>', 'with mid-word * emphasis' ],
+    [ 'un_frigging_believable' => '<p>un<em>frigging</em>believable</p>', 'with mid-word _ emphasis' ],
+    [ '*this* and *that' => '<p><em>this</em> and <em>that</em></p>', 'two *, one hanging'],
+    [ '_this_ and _that' => '<p><em>this</em> and <em>that</em></p>', 'two _, one hanging'],
 
     # Strong.
     [ '**this**' => '<p><strong>this</strong></p>', 'with simple ** strong' ],
@@ -43,6 +46,17 @@ for my $spec (
     [ "**this"        => "<p><strong>this</strong></p>", 'with simple ** strong and eof' ],
     [ "**this\n\n"    => "<p><strong>this</strong></p>\n\n", 'with simple ** strong and eob' ],
     [ "**this\n\nfoo" => "<p><strong>this</strong></p>\n\n<p>foo</p>", 'with simple ** strong and eob + para' ],
+    [ 'un**frigging**believable' => '<p>un<strong>frigging</strong>believable</p>', 'with mid-word ** strong' ],
+    [ 'un__frigging__believable' => '<p>un<strong>frigging</strong>believable</p>', 'with mid-word __ strong' ],
+    [ '**this** and **that' => '<p><strong>this</strong> and <strong>that</strong></p>', 'two **, one hanging'],
+    [ '__this__ and __that' => '<p><strong>this</strong> and <strong>that</strong></p>', 'two __, one hanging'],
+
+    # Strong and Emphasis.
+    [ '***this***' => '<p><strong><em>this</em></strong></p>', 'with em * and strong **' ],
+    [ '___this___' => '<p><strong><em>this</em></strong></p>', 'with em _ and strong __' ],
+    [ '*this **and** that*', => '<p><em>this <strong>and</strong> that</em></p>', 'mixed em * and srong **' ],
+    [ '*this __and__ that*', => '<p><em>this <strong>and</strong> that</em></p>', 'mixed em * and srong __' ],
+
 ) {
     local $ENV{FOO} = 1 if $spec->[0] eq 'un*frigging*believable';
     is $m->markover( $spec->[0] ), $spec->[1], "Markdown $spec->[2] should work";
