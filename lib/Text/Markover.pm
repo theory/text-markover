@@ -28,7 +28,6 @@ my $stem_re = qr{
 my $stem_split = sub {
     (my $l = shift) =~ s/^ST//;
     my @c = split //, shift;
-    my $pos = substr($l, 4);
     return $c[0] eq $c[1]
         ? ( [ $l => "$c[0]$c[1]"], [ $l => $c[2]] )
         : ( [ $l => $c[0] ],       [ $l => "$c[1]$c[2]" ] );
