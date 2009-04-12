@@ -26,7 +26,7 @@ my $stem_re = qr{
 }x;
 
 my $stem_split = sub {
-    (my $l = shift) =~ s/^ST//;
+    my $l = shift;
     my @c = split //, shift;
     return $c[0] eq $c[1]
         ? ( [ $l => "$c[0]$c[1]"], [ $l => $c[2]] )
@@ -66,9 +66,9 @@ sub lexer {
         } ],
 #        [ BULLET => qr/^([ ]*)([-*+])[ \t]+/ms, sub { (shift, $2, length $1) } ],
 
-        [ STEMMOP => qr/(?<=[^\s_*])$stem_re(?=[^\s_*])/, $stem_split ],
-        [ STEMLOP => qr/$stem_re(?=[^\s_*])/, $stem_split ],
-        [ STEMROP => qr/(?<=[^\s_*])$stem_re/, $stem_split ],
+        [ EMMOP => qr/(?<=[^\s_*])$stem_re(?=[^\s_*])/, $stem_split ],
+        [ EMLOP => qr/$stem_re(?=[^\s_*])/, $stem_split ],
+        [ EMROP => qr/(?<=[^\s_*])$stem_re/, $stem_split ],
 
         [ EMMOP => qr/(?<=[^\s*_])(?:[*]{1,2})(?=[^\s*_])|(?<=[^\s*_])(?:[_]{1,2})(?=[^\s*_])/ ],
         [ EMLOP => qr/[_]{1,2}(?=[^\s*_])|[*]{1,2}(?=[^\s*_])/ ],
