@@ -15,6 +15,25 @@ sub new {
     bless {} => $class;
 }
 
+my %html_for = (
+    em     => sub { "<em>$_[0]</em>" },
+    strong => sub { "<strong>$_[0]</strong>" },
+);
+
+my $stem_re = qr{
+      (?:[*]{2}|[_]{2})[*_]
+    | [*_](?:[*]{2}|[_]{2})
+}x;
+
+my $stem_split = sub {
+    (my $l = shift) =~ s/^ST//;
+    my @c = split //, shift;
+    my $pos = substr($l, 4);
+    return $c[0] eq $c[1]
+        ? ( [ $l => "$c[0]$c[1]"], [ $l => $c[2]] )
+        : ( [ $l => $c[0] ],       [ $l => "$c[1]$c[2]" ] );
+};
+
 sub lexer {
     my ($self, $iter) = @_;
     HOP::Lexer::make_lexer(
@@ -46,8 +65,17 @@ sub lexer {
               my $u = eval { URI::URL->new($url) };
               return $@ && !defined $u ? $url : [ $l => $u ];
         } ],
-        [ EMOP => qr/[_]{1,2}|[*]{1,2}/ ],
-        [ STRING  => qr/.+/ms ], # anything else.
+#        [ BULLET => qr/^([ ]*)([-*+])[ \t]+/ms, sub { (shift, $2, length $1) } ],
+
+        [ STEMMOP => qr/(?<=[^\s_*])$stem_re(?=[^\s_*])/, $stem_split ],
+        [ STEMLOP => qr/$stem_re(?=[^\s_*])/, $stem_split ],
+        [ STEMROP => qr/(?<=[^\s_*])$stem_re/, $stem_split ],
+
+        [ EMMOP => qr/(?<=[^\s*_])(?:[*]{1,2})(?=[^\s*_])|(?<=[^\s*_])(?:[_]{1,2})(?=[^\s*_])/ ],
+        [ EMLOP => qr/[_]{1,2}(?=[^\s*_])|[*]{1,2}(?=[^\s*_])/ ],
+        [ EMROP => qr/(?<=[^\s*_])[_]{1,2}|(?<=[^\s*_])[*]{1,2}/ ],
+
+        [ STRING => qr/.+/ms ], # anything else.
     );
 }
 
@@ -185,34 +213,59 @@ my $automail = lookfor( AUTOMAIL => sub {
     return qq{<a href="$scheme:$email">$email</a>}
 } );
 
-my $sstar   = absorb match EMOP => '*';
-my $suscore = absorb match EMOP => '_';
+# emphasis ::= (lstar | mstar) not_em (rstar | mstar | lookahead(eob))
+#           |  (lline | mline) not_em (rline | mline | lookahead(eob))
+
+my $lstar = match EMLOP => '*';
+my $rstar = match EMROP => '*';
+my $mstar = match EMMOP => '*';
+my $lline = match EMLOP => '_';
+my $rline = match EMROP => '_';
+my $mline = match EMMOP => '_';
 my $not_em;
 my $Not_em = parser { $not_em->(@_) };
 
-# emphasis ::= sstar not_em (sstar | lookahead(eob))
-#            | suscore not_em (suscore | lookahead(eob))
 my $emphasis = T(
     alternate(
-        concatenate( $sstar,   $Not_em, alternate($sstar,   $eob_ahead) ),
-        concatenate( $suscore, $Not_em, alternate($suscore, $eob_ahead) ),
+        concatenate(
+            alternate($lstar, $mstar),
+            $Not_em,
+            alternate($rstar, $mstar, $eob_ahead)
+        ),
+        concatenate(
+            alternate($lline, $mline),
+            $Not_em,
+            alternate($rline, $mline, $eob_ahead)
+        ),
     ),
-    sub { "<em>$_[0]</em>" }
+    sub { $html_for{em}->( @_[1,0] ) }
 );
 
-my $dstar   = absorb match EMOP => '**';
-my $duscore = absorb match EMOP => '__';
+# emphasis ::= (ldstar | mdstar) not_em (rdstar | mdstar | lookahead(eob))
+#           |  (ldline | mdline) not_em (rdline | mdline | lookahead(eob))
+my $ldstar = match EMLOP => '**';
+my $rdstar = match EMROP => '**';
+my $mdstar = match EMMOP => '**';
+my $ldline = match EMLOP => '__';
+my $rdline = match EMROP => '__';
+my $mdline = match EMMOP => '__';
 my $not_strong;
 my $Not_strong = parser { $not_strong->(@_) };
 
-# strong ::= dstar not_strong (dstar | lookahead(eob))
-#          | duscore not_strong (duscore | lookahead(eob))
 my $strong = T(
     alternate(
-        concatenate( $dstar,   $Not_strong, alternate($dstar,   $eob_ahead) ),
-        concatenate( $duscore, $Not_strong, alternate($duscore, $eob_ahead) ),
+        concatenate(
+            alternate($ldstar, $mdstar),
+            $Not_strong,
+            alternate($rdstar, $mdstar, $eob_ahead)
+        ),
+        concatenate(
+            alternate($ldline, $mdline),
+            $Not_strong,
+            alternate($rdline, $mdline, $eob_ahead)
+        ),
     ),
-    sub { "<strong>$_[0]</strong>" }
+    sub { $html_for{strong}->( @_[1,0] ) }
 );
 
 # spans ::= (text | code | autolink | automail | emphasis | strong)+
@@ -220,10 +273,14 @@ my @spans   = ($text, $code, $autolink, $automail, $strong, $emphasis);
 $spans      = T(plus( T( alternate( @spans ), $joiner, ) ), $joiner);
 
 # not_em ::= (text | code | autolink | automail | strong)+
-$not_em     = T(plus( T( alternate( grep { $_ ne $emphasis } @spans ), $joiner, ) ), $joiner);
+$not_em     = T(plus( T( alternate( grep {
+    $_ ne $emphasis
+} @spans ), $joiner, ) ), $joiner);
 
 # not_strong ::= (text | code | autolink | automail | strong)+
-$not_strong = T(plus( T( alternate( grep { $_ ne $strong } @spans ), $joiner, ) ), $joiner);
+$not_strong = T(plus( T( alternate( grep {
+    $_ ne $strong
+} @spans ), $joiner, ) ), $joiner);
 
 # para ::= spans eob
 my $para = T(
