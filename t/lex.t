@@ -36,19 +36,19 @@ for my $spec (
     [
         "\n  \n  \n",
         [ [ BLANK => "\n  \n  \n" ] ],
-        'a double blank line with spaces'
+        'a double blank line with spaces',
     ],
     [ "\n \t \n", [ [ BLANK => "\n \t \n" ] ], 'a blank line with tab' ],
     [
         "\n \t \n \t \n",
         [ [ BLANK => "\n \t \n \t \n" ] ],
-        'a double blank line with tabs'
+        'a double blank line with tabs',
     ],
     [ "  \n\n", [ [ BLANK => "  \n\n" ] ], 'a blank line leading spaces' ],
     [
         "  \n\n  \n",
         [ [ BLANK => "  \n\n  \n" ] ],
-        'a double blank line leading spaces'
+        'a double blank line leading spaces',
     ],
 
     # Windows blank lines.
@@ -57,22 +57,22 @@ for my $spec (
     [
         "\r\n  \r\n",
         [ [ BLANK => "\n  \n" ] ],
-        'a Windows blank line with spaces'
+        'a Windows blank line with spaces',
     ],
     [
         "\r\n  \r\n  \r\n",
         [ [ BLANK => "\n  \n  \n" ] ],
-        'a double Windows blank line with spaces'
+        'a double Windows blank line with spaces',
     ],
     [
         "\r\n  \t\t \r\n",
         [ [ BLANK => "\n  \t\t \n" ] ],
-        'a Windows blank line with tabs'
+        'a Windows blank line with tabs',
     ],
     [
         "\r\n  \t\t \r\n\r\n",
         [ [ BLANK => "\n  \t\t \n\n" ] ],
-        'a double Windows blank line with tabs'
+        'a double Windows blank line with tabs',
     ],
 
     # Mac blank lines.
@@ -82,17 +82,17 @@ for my $spec (
     [
         "\r  \r  \r",
         [ [ BLANK => "\n  \n  \n" ] ],
-        'a double Mac blank line with spaces'
+        'a double Mac blank line with spaces',
     ],
     [
         "\r  \t\t \r",
         [ [ BLANK => "\n  \t\t \n" ] ],
-        'a Mac blank line with tabs'
+        'a Mac blank line with tabs',
     ],
     [
         "\r  \t\t \r\r",
         [ [ BLANK => "\n  \t\t \n\n" ] ],
-        'a double Mac blank line with tabs'
+        'a double Mac blank line with tabs',
     ],
 
     # Code spans.
@@ -101,70 +101,70 @@ for my $spec (
     [
         "`this\nthat`",
         [ [ CODE => "this\nthat" ] ],
-        'a code span with a newline'
+        'a code span with a newline',
     ],
     [ '``code``', [ [ CODE => 'code' ] ], 'a double backtick code span' ],
     [
         '`` `code` ``',
         [ [ CODE => '`code`' ] ],
-        'a double backtick code span with backticks'
+        'a double backtick code span with backticks',
     ],
     [
         '`` ` ``',
         [ [ CODE => '`' ] ],
-        'a double backtick code span with just an embedded backtick'
+        'a double backtick code span with just an embedded backtick',
     ],
     [
         '``(`)``',
         [ [ CODE => '(`)' ] ],
-        'a double backtick code span with embedded backtick'
+        'a double backtick code span with embedded backtick',
     ],
 
     # Autolinks.
     [
         '<http://example.com>',
         [ [ AUTOLINK => URI::URL->new('http://example.com') ] ],
-        'an http URL'
+        'an http URL',
     ],
     [
         '<http://example.com/>',
         [ [ AUTOLINK => URI::URL->new('http://example.com/') ] ],
-        'an http URL with slash'
+        'an http URL with slash',
     ],
     [
         '<http://example.com/foo/bar>',
         [ [ AUTOLINK => URI::URL->new('http://example.com/foo/bar') ] ],
-        'an http URL with path'
+        'an http URL with path',
     ],
     [
         '<http://example.com/?>',
         [ [ AUTOLINK => URI::URL->new('http://example.com/?') ] ],
-        'an http URL with slash and ?'
+        'an http URL with slash and ?',
     ],
     [
         '<http://example.com?foo>',
         [ [ AUTOLINK => URI::URL->new('http://example.com?foo') ] ],
-        'an http URL with query'
+        'an http URL with query',
     ],
     [
         '<mailto:foo@bar.com>',
         [ [ AUTOLINK => URI::URL->new('mailto:foo@bar.com') ] ],
-        'a mailto URL'
+        'a mailto URL',
     ],
     [
         '<ftp://ftp.site.org>',
         [ [ AUTOLINK => URI::URL->new('ftp://ftp.site.org') ] ],
-        'an FTP URL'
+        'an FTP URL',
     ],
     [
         '<gopher://moo.foo.com>',
         [ [ AUTOLINK => URI::URL->new('gopher://moo.foo.com') ] ],
-        'a gopher URL'
+        'a gopher URL',
     ],
     [
         '<http://foo.com/?<this>&that>',
         [ [ STRING => '<http://foo.com/?<this>&that>' ] ],
-        'A URL with brackets should be a string'
+        'A URL with brackets should be a string',
     ],
     [
 '<http://www.deja.com/%5BST_rn=ps%5D/qs.xp?ST=PS&svcclass=dnyr&QRY=lwall>',
@@ -175,7 +175,7 @@ for my $spec (
                 )
             ]
         ],
-        'a long URL with path and query'
+        'a long URL with path and query',
     ],
 
     # Automail.
@@ -184,14 +184,15 @@ for my $spec (
     # Emphasis characters.
     [ '*', [ [ STRING => '*' ] ], 'a single *' ],
     [
-        '*this*', [ [ EMLOP => '*' ], [ STRING => 'this' ], [ EMROP => '*' ] ],
-        'a *word*'
+        '*this*',
+        [ [ EMLOP => '*' ], [ STRING => 'this' ], [ EMROP => '*' ] ],
+        'a *word*',
     ],
     [ '**', [ [ STRING => '**' ] ], 'a double *' ],
     [
         '**this**',
         [ [ EMLOP => '**' ], [ STRING => 'this' ], [ EMROP => '**' ] ],
-        'a **word**'
+        'a **word**',
     ],
     [
         'un*frigging*believable' => [
@@ -201,7 +202,7 @@ for my $spec (
             [ EMMOP  => '*' ],
             [ STRING => 'believable' ]
         ],
-        'a mid*word*string'
+        'a mid*word*string',
     ],
     [
         'un**frigging**believable' => [
@@ -211,19 +212,20 @@ for my $spec (
             [ EMMOP  => '**' ],
             [ STRING => 'believable' ]
         ],
-        'a mid**word**string'
+        'a mid**word**string',
     ],
 
     [ '_', [ [ STRING => '_' ] ], 'a single _' ],
     [
-        '_this_', [ [ EMLOP => '_' ], [ STRING => 'this' ], [ EMROP => '_' ] ],
-        'a _word_'
+        '_this_',
+        [ [ EMLOP => '_' ], [ STRING => 'this' ], [ EMROP => '_' ] ],
+        'a _word_',
     ],
     [ '__', [ [ STRING => '__' ] ], 'a double _' ],
     [
         '__this__',
         [ [ EMLOP => '__' ], [ STRING => 'this' ], [ EMROP => '__' ] ],
-        'a __word__'
+        'a __word__',
     ],
     [
         'un_frigging_believable' => [
@@ -233,7 +235,7 @@ for my $spec (
             [ EMMOP  => '_' ],
             [ STRING => 'believable' ]
         ],
-        'a mid_word_string'
+        'a mid_word_string',
     ],
     [
         'un__frigging__believable' => [
@@ -243,7 +245,7 @@ for my $spec (
             [ EMMOP  => '__' ],
             [ STRING => 'believable' ]
         ],
-        'a mid__word__string'
+        'a mid__word__string',
     ],
 
     [
@@ -253,7 +255,7 @@ for my $spec (
             [ EMMOP  => '*' ],
             [ STRING => 'believable' ]
         ],
-        'a left and mid *'
+        'a left and mid *',
     ],
     [
         'un*believable*' => [
@@ -262,7 +264,7 @@ for my $spec (
             [ STRING => 'believable' ],
             [ EMROP  => '*' ]
         ],
-        'a mid and right *'
+        'a mid and right *',
     ],
     [
         '**un**believable' => [
@@ -271,7 +273,7 @@ for my $spec (
             [ EMMOP  => '**' ],
             [ STRING => 'believable' ]
         ],
-        'a left and mid **'
+        'a left and mid **',
     ],
     [
         'un**believable**' => [
@@ -280,7 +282,7 @@ for my $spec (
             [ STRING => 'believable' ],
             [ EMROP  => '**' ]
         ],
-        'a mid and right **'
+        'a mid and right **',
     ],
     [
         '_un_believable' => [
@@ -289,7 +291,7 @@ for my $spec (
             [ EMMOP  => '_' ],
             [ STRING => 'believable' ]
         ],
-        'a left and mid _'
+        'a left and mid _',
     ],
     [
         'un_believable_' => [
@@ -298,7 +300,7 @@ for my $spec (
             [ STRING => 'believable' ],
             [ EMROP  => '_' ]
         ],
-        'a mid and right _'
+        'a mid and right _',
     ],
     [
         '__un__believable' => [
@@ -307,7 +309,7 @@ for my $spec (
             [ EMMOP  => '__' ],
             [ STRING => 'believable' ]
         ],
-        'a left and mid __'
+        'a left and mid __',
     ],
     [
         'un__believable__' => [
@@ -316,7 +318,7 @@ for my $spec (
             [ STRING => 'believable' ],
             [ EMROP  => '__' ]
         ],
-        'a mid and right __'
+        'a mid and right __',
     ],
 
     # Unbalanced empahasis characters.
@@ -327,7 +329,7 @@ for my $spec (
             [ EMLOP => '*' ],
             [ STRING => 'that!' ],
         ],
-        'two LOPs'
+        'two LOPs',
     ],
     [
         'this* and that!*' => [
@@ -336,7 +338,7 @@ for my $spec (
             [ STRING => ' and that!' ],
             [ EMROP => '*' ],
         ],
-        'two ROPs'
+        'two ROPs',
     ],
     [
         'this* and *that!' => [
@@ -346,7 +348,7 @@ for my $spec (
             [ EMLOP => '*' ],
             [ STRING => 'that!' ],
         ],
-        'ROP + LOP'
+        'ROP + LOP',
     ],
 
     # Combining emphasis characters.
@@ -363,7 +365,7 @@ for my $spec (
             [ STRING  => 'this' ],
             [ STEMROP => '*__'  ],
         ],
-        'a __*word*__'
+        'a __*word*__',
     ],
     [
         '*__this__*',
@@ -372,7 +374,7 @@ for my $spec (
             [ STRING  => 'this' ],
             [ STEMROP => '__*'  ],
         ],
-        'a *__word__*'
+        'a *__word__*',
     ],
     [
         '**_this_**',
@@ -381,7 +383,7 @@ for my $spec (
             [ STRING  => 'this' ],
             [ STEMROP => '_**'  ],
         ],
-        'a **_word_**'
+        'a **_word_**',
     ],
     [
         '_**this**_',
@@ -390,7 +392,7 @@ for my $spec (
             [ STRING => 'this'  ],
             [ STEMROP  => '**_' ],
         ],
-        'a _**word**_'
+        'a _**word**_',
     ],
     [
         '___this___',
@@ -399,7 +401,7 @@ for my $spec (
             [ STRING  => 'this' ],
             [ STEMROP => '___'  ],
         ],
-        'a ___word___'
+        'a ___word___',
     ],
     [
         '***this***',
@@ -408,7 +410,7 @@ for my $spec (
             [ STRING  => 'this' ],
             [ STEMROP => '***'  ],
         ],
-        'a ***word***'
+        'a ***word***',
     ],
 
     [
@@ -419,7 +421,7 @@ for my $spec (
             [ STEMMOP => '__*'       ],
             [ STRING => 'believable' ],
         ],
-        'a mid*__word__*string'
+        'a mid*__word__*string',
     ],
     [
         'un_**frigging**_believable' => [
@@ -429,7 +431,7 @@ for my $spec (
             [ STEMMOP => '**_'        ],
             [ STRING  => 'believable' ],
         ],
-        'a mid_**word**_string'
+        'a mid_**word**_string',
     ],
     [
         '*__un__*believable' => [
@@ -438,7 +440,7 @@ for my $spec (
             [ STEMMOP => '__*'        ],
             [ STRING  => 'believable' ],
         ],
-        'a mid_**word**_string'
+        'a mid_**word**_string',
     ],
     [
         '_**un**_believable' => [
@@ -447,7 +449,7 @@ for my $spec (
             [ STEMMOP => '**_'        ],
             [ STRING  => 'believable' ],
         ],
-        'a mid*__word__*string'
+        'a mid*__word__*string',
     ],
 
     # Unbalanced combined emphasis operators.
@@ -458,7 +460,7 @@ for my $spec (
             [ STRING  => 'this' ],
             [ STEMROP => '__*'  ],
         ],
-        'a __*word__*'
+        'a __*word__*',
     ],
     [
         '**_this**_',
@@ -467,7 +469,7 @@ for my $spec (
             [ STRING  => 'this' ],
             [ STEMROP => '**_'  ],
         ],
-        'a **_word**_'
+        'a **_word**_',
     ],
   )
 {
@@ -490,18 +492,18 @@ for my $spec (
     [
         "Foo\n\nBar" =>
           [ [ STRING => 'Foo' ], [ BLANK => "\n\n" ], [ STRING => 'Bar' ] ],
-        'two paras'
+        'two paras',
     ],
     [
         "Foo\n \t \nBar" =>
           [ [ STRING => 'Foo' ], [ BLANK => "\n \t \n" ], [ STRING => 'Bar' ] ],
-        'two paras with tab in the blank'
+        'two paras with tab in the blank',
     ],
     [
         'This is a `test`.' => [
             [ STRING => 'This is a ' ], [ CODE => 'test' ], [ STRING => '.' ],
         ],
-        'a string and code'
+        'a string and code',
     ],
     [
         "This is a `test`.\n" => [
@@ -510,7 +512,7 @@ for my $spec (
             [ STRING  => '.' ],
             [ NEWLINE => "\n" ],
         ],
-        'a string and code and newline'
+        'a string and code and newline',
     ],
     [
         "This is a `test\n`." => [
@@ -518,12 +520,12 @@ for my $spec (
             [ CODE   => "test\n" ],
             [ STRING => '.' ],
         ],
-        'a string and code with newline'
+        'a string and code with newline',
     ],
     [
         '`two bits` of `code`' =>
           [ [ CODE => 'two bits' ], [ STRING => ' of ' ], [ CODE => 'code' ], ],
-        'two bits of code'
+        'two bits of code',
     ]
   )
 {
