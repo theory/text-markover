@@ -3,7 +3,6 @@ package Text::Markover;
 use strict;
 use warnings;
 use HOP::Lexer ();
-use lib '/Users/david/Downloads/HOP-Parser-0.01/lib';
 use HOP::Parser ':all';
 use HOP::Stream ();
 use URI::URL ();
@@ -69,36 +68,6 @@ sub lexer {
         [ STRING => qr/.+/ms ], # anything else.
     );
 }
-
-# Matches one or more times.
-sub plus {
-    my $p = shift;
-    T(
-        concatenate( $p, star($p) ),
-        sub {
-            my ( $first, $rest ) = @_;
-            [ $first, @$rest ];
-        }
-    );
-}
-
-sub lookahead {
-    my $p = ref $_[0] eq 'CODE' ? shift : lookfor @_;
-    parser {
-        my $input = shift or return;
-        my @ret = eval { $p->($input) };
-        return @ret ? (undef, $input) : ();
-    },
-}
-
-# sub neg_lookahead {
-#     my $p = ref $_[0] eq 'CODE' ? shift : lookfor @_;
-#     parser {
-#         my $input = shift or return;
-#         my @ret = eval { $p->($input) };
-#         return @ret ? () : (undef, $input);
-#     },
-# }
 
 my $newline = match 'NEWLINE';
 my $blank   = match 'BLANK';

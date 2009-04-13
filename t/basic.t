@@ -2,8 +2,8 @@
 
 use strict;
 use warnings;
-#use Test::More tests => 61;
-use Test::More 'no_plan';
+use Test::More tests => 72;
+#use Test::More 'no_plan';
 
 BEGIN { use_ok 'Text::Markover' or die; }
 
@@ -235,6 +235,8 @@ for my $spec (
     [ '_**this__*', '<p>_**this__*</p>', 'mismatched both 2' ],
     [ '**_this*__', '<p>**_this*__</p>', 'mismatched both 3' ],
     [ '*__this**_', '<p>*__this**_</p>', 'mismatched both 4' ],
+    [ '___this***', '<p>___this***</p>', 'mismatched both 5' ],
+    [ '***this___', '<p>***this___</p>', 'mismatched both 6' ],
 
     # Hanging emphasis characters.
     [ '* not em *',       '<p>* not em *</p>',       'not em *' ],
