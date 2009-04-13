@@ -26,54 +26,57 @@ for my $spec (
     [
         '<http://foo.com>',
         '<p><a href="http://foo.com/">http://foo.com/</a></p>',
-        'with autolink'
+        'with autolink',
     ],
     [
         '<http://foo.com?q=4&a=b>',
-'<p><a href="http://foo.com?q=4&amp;a=b">http://foo.com?q=4&amp;a=b</a></p>',
-        'with autolink with entities'
+        '<p><a href="http://foo.com?q=4&amp;a=b">http://foo.com?q=4&amp;a=b</a></p>',
+        'with autolink with entities',
     ],
 
     # Emphasis.
     [ '*this*', '<p><em>this</em></p>', 'with simple * emphasis' ],
     [ '_this_', '<p><em>this</em></p>', 'with simple _ emphasis' ],
     [
-        '*this\*that*', '<p><em>this*that</em></p>',
-        'with simple * emphasis and escape'
+        '*this\*that*',
+        '<p><em>this*that</em></p>',
+        'with simple * emphasis and escape',
     ],
     [
-        '_this\_that_', '<p><em>this_that</em></p>',
-        'with simple _ emphasis and escape'
+        '_this\_that_',
+        '<p><em>this_that</em></p>',
+        'with simple _ emphasis and escape',
     ],
     [ "*this", "<p>*this</p>", 'with lone * and eof' ],
     [
-        "*this\n\n", "<p>*this</p>\n\n",
-        'with lone * and eob'
+        "*this\n\n",
+        "<p>*this</p>\n\n",
+        'with lone * and eob',
     ],
     [
         "*this\n\nfoo",
         "<p>*this</p>\n\n<p>foo</p>",
-        'with lone * and eob + para'
+        'with lone * and eob + para',
     ],
     [
         'un*frigging*believable',
         '<p>un<em>frigging</em>believable</p>',
-        'with mid-word * emphasis'
+        'with mid-word * emphasis',
     ],
     [
         'un_frigging_believable',
         '<p>un<em>frigging</em>believable</p>',
-        'with mid-word _ emphasis'
+        'with mid-word _ emphasis',
     ],
     [
         '*this* and *that',
         '<p><em>this</em> and *that</p>',
-        'two *, one hanging'
+        'two *, one hanging',
     ],
     [
         '_this_ and _that',
         '<p><em>this</em> and _that</p>',
-        'two _, one hanging'
+        'two _, one hanging',
     ],
 
     # Strong.
@@ -82,128 +85,140 @@ for my $spec (
     [
         '**this\*\*that**',
         '<p><strong>this**that</strong></p>',
-        'with simple ** strong and escape'
+        'with simple ** strong and escape',
     ],
     [
         '__this\_\_that__',
         '<p><strong>this__that</strong></p>',
-        'with simple __ strong and escape'
+        'with simple __ strong and escape',
     ],
     [
-        "**this", "<p>**this</p>",
-        'with lone ** and eof'
+        "**this",
+        "<p>**this</p>",
+        'with lone ** and eof',
     ],
     [
-        "**this\n\n", "<p>**this</p>\n\n",
-        'with lone ** and eob'
+        "**this\n\n",
+        "<p>**this</p>\n\n",
+        'with lone ** and eob',
     ],
     [
         "**this\n\nfoo",
         "<p>**this</p>\n\n<p>foo</p>",
-        'with lone ** and eob + para'
+        'with lone ** and eob + para',
     ],
     [
         'un**frigging**believable',
         '<p>un<strong>frigging</strong>believable</p>',
-        'with mid-word ** strong'
+        'with mid-word ** strong',
     ],
     [
         'un__frigging__believable',
         '<p>un<strong>frigging</strong>believable</p>',
-        'with mid-word __ strong'
+        'with mid-word __ strong',
     ],
     [
         '**this** and **that',
         '<p><strong>this</strong> and **that</p>',
-        'two **, one hanging'
+        'two **, one hanging',
     ],
     [
         '__this__ and __that',
         '<p><strong>this</strong> and __that</p>',
-        'two __, one hanging'
+        'two __, one hanging',
     ],
 
     # Strong and Emphasis.
     [
-        '***this***', '<p><strong><em>this</em></strong></p>',
-        'with strong ** and em *'
+        '***this***',
+        '<p><strong><em>this</em></strong></p>',
+        'with strong ** and em *',
     ],
     [
-        '___this___', '<p><strong><em>this</em></strong></p>',
-        'with strong __ and em _'
+        '___this___',
+        '<p><strong><em>this</em></strong></p>',
+        'with strong __ and em _',
     ],
     [
-        '**_this_**', '<p><strong><em>this</em></strong></p>',
-        'with strong ** and em _'
+        '**_this_**',
+        '<p><strong><em>this</em></strong></p>',
+        'with strong ** and em _',
     ],
     [
-        '__*this*__', '<p><strong><em>this</em></strong></p>',
-        'with strong __ and em *'
+        '__*this*__',
+        '<p><strong><em>this</em></strong></p>',
+        'with strong __ and em *',
     ],
     [
-        '_**this**_', '<p><em><strong>this</strong></em></p>',
-        'with em _ and strong **'
+        '_**this**_',
+        '<p><em><strong>this</strong></em></p>',
+        'with em _ and strong **',
     ],
     [
-        '*__this__*', '<p><em><strong>this</strong></em></p>',
-        'with em * and strong __'
+        '*__this__*',
+        '<p><em><strong>this</strong></em></p>',
+        'with em * and strong __',
     ],
     [
-        '**_this**_', '<p><strong><em>this</em></strong></p>',
-        'with unbalanced strong ** and em _'
+        '**_this**_',
+        '<p><strong><em>this</em></strong></p>',
+        'with unbalanced strong ** and em _',
     ],
     [
-        '__*this__*', '<p><strong><em>this</em></strong></p>',
-        'with unbalanced strong __ and em *'
+        '__*this__*',
+        '<p><strong><em>this</em></strong></p>',
+        'with unbalanced strong __ and em *',
     ],
     [
-        '_**this_**', '<p><em><strong>this</strong></em></p>',
-        'with unbalanced em _ and strong **'
+        '_**this_**',
+        '<p><em><strong>this</strong></em></p>',
+        'with unbalanced em _ and strong **',
     ],
     [
-        '*__this*__', '<p><em><strong>this</strong></em></p>',
-        'with unbalanced em * and strong __'
+        '*__this*__',
+        '<p><em><strong>this</strong></em></p>',
+        'with unbalanced em * and strong __',
     ],
 
     [
         'un*__frigging__*believable',
         '<p>un<em><strong>frigging</strong></em>believable</p>',
-        'with mid-word *__ emphasis'
+        'with mid-word *__ emphasis',
     ],
     [
         'un__*frigging*__believable',
         '<p>un<strong><em>frigging</em></strong>believable</p>',
-        'with mid-word __* emphasis'
+        'with mid-word __* emphasis',
     ],
     [
         'un_**frigging**_believable',
         '<p>un<em><strong>frigging</strong></em>believable</p>',
-        'with mid-word _** emphasis'
+        'with mid-word _** emphasis',
     ],
     [
         'un**_frigging_**believable',
         '<p>un<strong><em>frigging</em></strong>believable</p>',
-        'with mid-word **_ emphasis'
+        'with mid-word **_ emphasis',
     ],
     [
         'un***frigging***believable',
         '<p>un<strong><em>frigging</em></strong>believable</p>',
-        'with mid-word *** emphasis'
+        'with mid-word *** emphasis',
     ],
     [
         'un___frigging___believable',
         '<p>un<strong><em>frigging</em></strong>believable</p>',
-        'with mid-word ___ emphasis'
+        'with mid-word ___ emphasis',
     ],
     [
         '*this **and** that*',
         '<p><em>this <strong>and</strong> that</em></p>',
-        'mixed em * and srong **'
+        'mixed em * and srong **',
     ],
     [
         '*this __and__ that*',
         '<p><em>this <strong>and</strong> that</em></p>',
-        'mixed em * and srong __'
+        'mixed em * and srong __',
     ],
 
     # Unbalanced emphasis.
