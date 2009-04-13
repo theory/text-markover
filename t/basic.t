@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 47;
+use Test::More tests => 55;
 #use Test::More 'no_plan';
 
 BEGIN { use_ok 'Text::Markover' or die; }
@@ -12,7 +12,7 @@ ok my $m = Text::Markover->new, 'Contruct Markover object';
 for my $spec (
 
     # Paragraphs.
-    [ "Foo\n\nBar",   "<p>Foo</p>\n\n<p>Bar</p>",   ' with paras' ],
+    [ "Foo\n\nBar",   "<p>Foo</p>\n\n<p>Bar</p>",   'with paras' ],
     [ "Foo\n\nBar\n", "<p>Foo</p>\n\n<p>Bar</p>\n", 'with trailing newline' ],
     [ "Foo\nBar\n",   "<p>Foo\nBar</p>\n",          'with inline newline' ],
 
@@ -45,32 +45,34 @@ for my $spec (
         '_this\_that_', '<p><em>this_that</em></p>',
         'with simple _ emphasis and escape'
     ],
-    [ "*this", "<p><em>this</em></p>", 'with simple * emphasis and eof' ],
+    [ "*this", "<p>*this</p>", 'with lone * and eof' ],
     [
-        "*this\n\n", "<p><em>this</em></p>\n\n",
-        'with simple * emphasis and eob'
+        "*this\n\n", "<p>*this</p>\n\n",
+        'with lone * and eob'
     ],
     [
         "*this\n\nfoo",
-        "<p><em>this</em></p>\n\n<p>foo</p>",
-        'with simple * emphasis and eob + para'
+        "<p>*this</p>\n\n<p>foo</p>",
+        'with lone * and eob + para'
     ],
     [
-        'un*frigging*believable', '<p>un<em>frigging</em>believable</p>',
+        'un*frigging*believable',
+        '<p>un<em>frigging</em>believable</p>',
         'with mid-word * emphasis'
     ],
     [
-        'un_frigging_believable', '<p>un<em>frigging</em>believable</p>',
+        'un_frigging_believable',
+        '<p>un<em>frigging</em>believable</p>',
         'with mid-word _ emphasis'
     ],
     [
         '*this* and *that',
-        '<p><em>this</em> and <em>that</em></p>',
+        '<p><em>this</em> and *that</p>',
         'two *, one hanging'
     ],
     [
         '_this_ and _that',
-        '<p><em>this</em> and <em>that</em></p>',
+        '<p><em>this</em> and _that</p>',
         'two _, one hanging'
     ],
 
@@ -88,17 +90,17 @@ for my $spec (
         'with simple __ strong and escape'
     ],
     [
-        "**this", "<p><strong>this</strong></p>",
-        'with simple ** strong and eof'
+        "**this", "<p>**this</p>",
+        'with lone ** and eof'
     ],
     [
-        "**this\n\n", "<p><strong>this</strong></p>\n\n",
-        'with simple ** strong and eob'
+        "**this\n\n", "<p>**this</p>\n\n",
+        'with lone ** and eob'
     ],
     [
         "**this\n\nfoo",
-        "<p><strong>this</strong></p>\n\n<p>foo</p>",
-        'with simple ** strong and eob + para'
+        "<p>**this</p>\n\n<p>foo</p>",
+        'with lone ** and eob + para'
     ],
     [
         'un**frigging**believable',
@@ -112,12 +114,12 @@ for my $spec (
     ],
     [
         '**this** and **that',
-        '<p><strong>this</strong> and <strong>that</strong></p>',
+        '<p><strong>this</strong> and **that</p>',
         'two **, one hanging'
     ],
     [
         '__this__ and __that',
-        '<p><strong>this</strong> and <strong>that</strong></p>',
+        '<p><strong>this</strong> and __that</p>',
         'two __, one hanging'
     ],
 
@@ -148,6 +150,37 @@ for my $spec (
     ],
 
     [
+        'un*__frigging__*believable',
+        '<p>un<em><strong>frigging</strong></em>believable</p>',
+        'with mid-word *__ emphasis'
+    ],
+    [
+        'un__*frigging*__believable',
+        '<p>un<strong><em>frigging</em></strong>believable</p>',
+        'with mid-word __* emphasis'
+    ],
+    [
+        'un_**frigging**_believable',
+        '<p>un<em><strong>frigging</strong></em>believable</p>',
+        'with mid-word _** emphasis'
+    ],
+    [
+        'un**_frigging_**believable',
+        '<p>un<strong><em>frigging</em></strong>believable</p>',
+        'with mid-word **_ emphasis'
+    ],
+#     [
+#         'un***frigging***believable',
+#         '<p>un<strong><em>frigging</em></strong>believable</p>',
+#         'with mid-word *** emphasis'
+#     ],
+#     [
+#         'un___frigging___believable',
+#         '<p>un<strong><em>frigging</em></strong>believable</p>',
+#         'with mid-word ___ emphasis'
+#     ],
+
+    [
         '*this **and** that*',
         '<p><em>this <strong>and</strong> that</em></p>',
         'mixed em * and srong **'
@@ -157,6 +190,12 @@ for my $spec (
         '<p><em>this <strong>and</strong> that</em></p>',
         'mixed em * and srong __'
     ],
+
+    # Unbalanced emphasis.
+    [ '*this *that!',   '<p>*this *that!</p>', '2 hangling left *s' ],
+    [ '_this _that!',   '<p>_this _that!</p>', '2 hangling left _s' ],
+    [ '**this **that!', '<p>**this **that!</p>', '2 hangling left **s' ],
+    [ '__this __that!', '<p>__this __that!</p>', '2 hangling left __s' ],
 
     # Not Strong or Emphasis.
     [ '* not em *',       '<p>* not em *</p>',       'not em *' ],

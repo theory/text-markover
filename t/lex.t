@@ -2,8 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 103;
-
+use Test::More tests => 106;
 #use Test::More 'no_plan';
 use Data::Dumper;
 use HOP::Stream;
@@ -320,6 +319,36 @@ for my $spec (
         'a mid and right __'
     ],
 
+    # Unbalanced empahasis characters.
+    [
+        '*this and *that!' => [
+            [ EMLOP => '*' ],
+            [ STRING => 'this and ' ],
+            [ EMLOP => '*' ],
+            [ STRING => 'that!' ],
+        ],
+        'two LOPs'
+    ],
+    [
+        'this* and that!*' => [
+            [ STRING => 'this' ],
+            [ EMROP => '*' ],
+            [ STRING => ' and that!' ],
+            [ EMROP => '*' ],
+        ],
+        'two ROPs'
+    ],
+    [
+        'this* and *that!' => [
+            [ STRING => 'this' ],
+            [ EMROP => '*' ],
+            [ STRING => ' and ' ],
+            [ EMLOP => '*' ],
+            [ STRING => 'that!' ],
+        ],
+        'ROP + LOP'
+    ],
+
     # Combining emphasis characters.
     [ '*__',    [ [ STRING => '*__' ] ],    '*__' ],
     [ '__*',    [ [ STRING => '__*' ] ],    '__*' ],
@@ -377,8 +406,8 @@ for my $spec (
             [ EMLOP  => '__' ],
             [ EMLOP  => '_' ],
             [ STRING => 'this' ],
+            [ EMROP  => '_' ],
             [ EMROP  => '__' ],
-            [ EMROP  => '_' ]
         ],
         'a ___word___'
     ],
@@ -388,8 +417,8 @@ for my $spec (
             [ EMLOP  => '**' ],
             [ EMLOP  => '*' ],
             [ STRING => 'this' ],
+            [ EMROP  => '*' ],
             [ EMROP  => '**' ],
-            [ EMROP  => '*' ]
         ],
         'a ***word***'
     ],
