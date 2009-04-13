@@ -2,8 +2,8 @@
 
 use strict;
 use warnings;
-use Test::More tests => 61;
-#use Test::More 'no_plan';
+#use Test::More tests => 61;
+use Test::More 'no_plan';
 
 BEGIN { use_ok 'Text::Markover' or die; }
 
@@ -161,23 +161,23 @@ for my $spec (
     ],
     [
         '**_this**_',
-        '<p><strong><em>this</em></strong></p>',
-        'with unbalanced strong ** and em _',
+        '<p>**_this**_</p>',
+        'with unbalanced  **_ **_',
     ],
     [
         '__*this__*',
-        '<p><strong><em>this</em></strong></p>',
-        'with unbalanced strong __ and em *',
+        '<p>__*this__*</p>',
+        'with unbalanced __* __*',
     ],
     [
         '_**this_**',
-        '<p><em><strong>this</strong></em></p>',
-        'with unbalanced em _ and strong **',
+        '<p>_**this_**</p>',
+        'with unbalanced _** _**',
     ],
     [
         '*__this*__',
-        '<p><em><strong>this</strong></em></p>',
-        'with unbalanced em * and strong __',
+        '<p>*__this*__</p>',
+        'with unbalanced *__ *__',
     ],
 
     [
@@ -226,8 +226,17 @@ for my $spec (
     [ '_this _that!',   '<p>_this _that!</p>', '2 hangling left _s' ],
     [ '**this **that!', '<p>**this **that!</p>', '2 hangling left **s' ],
     [ '__this __that!', '<p>__this __that!</p>', '2 hangling left __s' ],
+    [ '_this*', '<p>_this*</p>', 'mismatched em chars' ],
+    [ '__this**', '<p>__this**</p>', 'mismatched strong chars' ],
+    [ '*this_', '<p>*this_</p>', 'mismatched em chars reversed' ],
+    [ '__this**', '<p>__this**</p>', 'mismatched strong chars' ],
+    [ '**this__', '<p>**this__</p>', 'mismatched strong chars reversed' ],
+    [ '__*this_**', '<p>__*this_**</p>', 'mismatched both' ],
+    [ '_**this__*', '<p>_**this__*</p>', 'mismatched both 2' ],
+    [ '**_this*__', '<p>**_this*__</p>', 'mismatched both 3' ],
+    [ '*__this**_', '<p>*__this**_</p>', 'mismatched both 4' ],
 
-    # Not Strong or Emphasis.
+    # Hanging emphasis characters.
     [ '* not em *',       '<p>* not em *</p>',       'not em *' ],
     [ '** not strong **', '<p>** not strong **</p>', 'not strong **' ],
     [ '_ not em _',       '<p>_ not em _</p>',       'not em _' ],

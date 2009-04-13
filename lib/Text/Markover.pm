@@ -280,17 +280,63 @@ my $strongor = T(
 );
 
 # stem ::= (lstem | mstem) not_stem (rstem | mstem)
-my $lstem = match 'STEMLOP';
-my $rstem = match 'STEMROP';
-my $mstem = match 'STEMMOP';
+# ___ __* _** ***
+my $ltline      = match STEMLOP => '___';
+my $ltstar      = match STEMLOP => '***';
+my $ldline_star = match STEMLOP => '__*';
+my $lline_dstar = match STEMLOP => '_**';
+my $ldstar_line = match STEMLOP => '**_';
+my $lstar_dline = match STEMLOP => '*__';
+
+my $rtline      = match STEMROP => '___';
+my $rtstar      = match STEMROP => '***';
+my $rdline_star = match STEMROP => '__*';
+my $rline_dstar = match STEMROP => '_**';
+my $rdstar_line = match STEMROP => '**_';
+my $rstar_dline = match STEMROP => '*__';
+
+my $mtline      = match STEMMOP => '___';
+my $mtstar      = match STEMMOP => '***';
+my $mdline_star = match STEMMOP => '__*';
+my $mline_dstar = match STEMMOP => '_**';
+my $mdstar_line = match STEMMOP => '**_';
+my $mstar_dline = match STEMMOP => '*__';
+
 my $not_stem;
 my $Not_stem = parser { $not_stem->(@_) };
 
 my $stem = T(
-    concatenate(
-        alternate($lstem, $mstem),
-        $Not_stem,
-        alternate($rstem, $mstem)
+    alternate(
+        concatenate( # ___ ___
+            alternate($ltline, $mtline),
+            $Not_stem,
+            alternate($rtline, $mtline)
+        ),
+        concatenate( # *** ***
+            alternate($ltstar, $mtstar),
+            $Not_stem,
+            alternate($rtstar, $mtstar)
+        ),
+        concatenate( # *__ __*
+            alternate($lstar_dline, $mstar_dline),
+            $Not_stem,
+            alternate($rdline_star, $mdline_star),
+        ),
+        concatenate( # __* *__
+            alternate($ldline_star, $mdline_star),
+            $Not_stem,
+            alternate($rstar_dline, $mstar_dline),
+        ),
+        concatenate( # _** **_
+            alternate($lline_dstar, $mline_dstar),
+            $Not_stem,
+            alternate($rdstar_line, $mdstar_line),
+        ),
+        concatenate( # **_ _**
+            alternate($ldstar_line, $mdstar_line),
+            $Not_stem,
+            alternate($rline_dstar, $mline_dstar),
+        ),
     ),
     sub {
         my @c = split //, shift;
@@ -306,7 +352,9 @@ my $stem = T(
 my $stemor = T(
     alternate(
         $stem,
-        $lstem, $rstem, $mstem,
+        match('STEMLOP'),
+        match('STEMMOP'),
+        match('STEMROP'),
     ),
     $joiner
 );

@@ -17,7 +17,6 @@ sub get_toks {
         push @toks, $tok;
     }
     return \@toks;
-
 }
 
 # Basic lexing.
