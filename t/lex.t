@@ -359,114 +359,93 @@ for my $spec (
     [
         '__*this*__',
         [
-            [ EMLOP  => '__' ],
-            [ EMLOP  => '*' ],
-            [ STRING => 'this' ],
-            [ EMROP  => '*' ],
-            [ EMROP  => '__' ]
+            [ STEMLOP => '__*'  ],
+            [ STRING  => 'this' ],
+            [ STEMROP => '*__'  ],
         ],
         'a __*word*__'
     ],
     [
         '*__this__*',
         [
-            [ EMLOP  => '*' ],
-            [ EMLOP  => '__' ],
-            [ STRING => 'this' ],
-            [ EMROP  => '__' ],
-            [ EMROP  => '*' ]
+            [ STEMLOP => '*__'  ],
+            [ STRING  => 'this' ],
+            [ STEMROP => '__*'  ],
         ],
         'a *__word__*'
     ],
     [
         '**_this_**',
         [
-            [ EMLOP  => '**' ],
-            [ EMLOP  => '_' ],
-            [ STRING => 'this' ],
-            [ EMROP  => '_' ],
-            [ EMROP  => '**' ]
+            [ STEMLOP => '**_'  ],
+            [ STRING  => 'this' ],
+            [ STEMROP => '_**'  ],
         ],
         'a **_word_**'
     ],
     [
         '_**this**_',
         [
-            [ EMLOP  => '_' ],
-            [ EMLOP  => '**' ],
-            [ STRING => 'this' ],
-            [ EMROP  => '**' ],
-            [ EMROP  => '_' ]
+            [ STEMLOP  => '_**' ],
+            [ STRING => 'this'  ],
+            [ STEMROP  => '**_' ],
         ],
         'a _**word**_'
     ],
     [
         '___this___',
         [
-            [ EMLOP  => '__' ],
-            [ EMLOP  => '_' ],
-            [ STRING => 'this' ],
-            [ EMROP  => '_' ],
-            [ EMROP  => '__' ],
+            [ STEMLOP => '___'  ],
+            [ STRING  => 'this' ],
+            [ STEMROP => '___'  ],
         ],
         'a ___word___'
     ],
     [
         '***this***',
         [
-            [ EMLOP  => '**' ],
-            [ EMLOP  => '*' ],
-            [ STRING => 'this' ],
-            [ EMROP  => '*' ],
-            [ EMROP  => '**' ],
+            [ STEMLOP => '***'  ],
+            [ STRING  => 'this' ],
+            [ STEMROP => '***'  ],
         ],
         'a ***word***'
     ],
 
     [
         'un*__frigging__*believable' => [
-            [ STRING => 'un' ],
-            [ EMMOP  => '*' ],
-            [ EMMOP  => '__' ],
-            [ STRING => 'frigging' ],
-            [ EMMOP  => '__' ],
-            [ EMMOP  => '*' ],
-            [ STRING => 'believable' ]
+            [ STRING  => 'un'        ],
+            [ STEMMOP => '*__'       ],
+            [ STRING  => 'frigging'  ],
+            [ STEMMOP => '__*'       ],
+            [ STRING => 'believable' ],
         ],
         'a mid*__word__*string'
     ],
     [
         'un_**frigging**_believable' => [
-            [ STRING => 'un' ],
-            [ EMMOP  => '_' ],
-            [ EMMOP  => '**' ],
-            [ STRING => 'frigging' ],
-            [ EMMOP  => '**' ],
-            [ EMMOP  => '_' ],
-            [ STRING => 'believable' ]
+            [ STRING  => 'un'         ],
+            [ STEMMOP => '_**'        ],
+            [ STRING  => 'frigging'   ],
+            [ STEMMOP => '**_'        ],
+            [ STRING  => 'believable' ],
         ],
         'a mid_**word**_string'
     ],
     [
         '*__un__*believable' => [
-            [ EMLOP  => '*' ],
-            [ EMLOP  => '__' ],
-            [ STRING => 'un' ],
-
-            [ EMMOP  => '__' ],
-            [ EMMOP  => '*' ],
-            [ STRING => 'believable' ]
+            [ STEMLOP => '*__'        ],
+            [ STRING  => 'un'         ],
+            [ STEMMOP => '__*'        ],
+            [ STRING  => 'believable' ],
         ],
         'a mid_**word**_string'
     ],
     [
         '_**un**_believable' => [
-            [ EMLOP  => '_' ],
-            [ EMLOP  => '**' ],
-            [ STRING => 'un' ],
-            [ EMMOP  => '**' ],
-            [ EMMOP  => '_' ],
-            [ STRING => 'believable' ]
+            [ STEMLOP => '_**'        ],
+            [ STRING  => 'un'         ],
+            [ STEMMOP => '**_'        ],
+            [ STRING  => 'believable' ],
         ],
         'a mid*__word__*string'
     ],
@@ -475,22 +454,18 @@ for my $spec (
     [
         '__*this__*',
         [
-            [ EMLOP  => '__' ],
-            [ EMLOP  => '*' ],
-            [ STRING => 'this' ],
-            [ EMROP  => '__' ],
-            [ EMROP  => '*' ]
+            [ STEMLOP => '__*'  ],
+            [ STRING  => 'this' ],
+            [ STEMROP => '__*'  ],
         ],
         'a __*word__*'
     ],
     [
         '**_this**_',
         [
-            [ EMLOP  => '**' ],
-            [ EMLOP  => '_' ],
-            [ STRING => 'this' ],
-            [ EMROP  => '**' ],
-            [ EMROP  => '_' ]
+            [ STEMLOP => '**_'  ],
+            [ STRING  => 'this' ],
+            [ STEMROP => '**_'  ],
         ],
         'a **_word**_'
     ],

@@ -2,8 +2,8 @@
 
 use strict;
 use warnings;
-use Test::More tests => 55;
-#use Test::More 'no_plan';
+use Test::More tests => 61;
+use Test::More 'no_plan';
 
 BEGIN { use_ok 'Text::Markover' or die; }
 
@@ -148,6 +148,22 @@ for my $spec (
         '*__this__*', '<p><em><strong>this</strong></em></p>',
         'with em * and strong __'
     ],
+    [
+        '**_this**_', '<p><strong><em>this</em></strong></p>',
+        'with unbalanced strong ** and em _'
+    ],
+    [
+        '__*this__*', '<p><strong><em>this</em></strong></p>',
+        'with unbalanced strong __ and em *'
+    ],
+    [
+        '_**this_**', '<p><em><strong>this</strong></em></p>',
+        'with unbalanced em _ and strong **'
+    ],
+    [
+        '*__this*__', '<p><em><strong>this</strong></em></p>',
+        'with unbalanced em * and strong __'
+    ],
 
     [
         'un*__frigging__*believable',
@@ -169,17 +185,16 @@ for my $spec (
         '<p>un<strong><em>frigging</em></strong>believable</p>',
         'with mid-word **_ emphasis'
     ],
-#     [
-#         'un***frigging***believable',
-#         '<p>un<strong><em>frigging</em></strong>believable</p>',
-#         'with mid-word *** emphasis'
-#     ],
-#     [
-#         'un___frigging___believable',
-#         '<p>un<strong><em>frigging</em></strong>believable</p>',
-#         'with mid-word ___ emphasis'
-#     ],
-
+    [
+        'un***frigging***believable',
+        '<p>un<strong><em>frigging</em></strong>believable</p>',
+        'with mid-word *** emphasis'
+    ],
+    [
+        'un___frigging___believable',
+        '<p>un<strong><em>frigging</em></strong>believable</p>',
+        'with mid-word ___ emphasis'
+    ],
     [
         '*this **and** that*',
         '<p><em>this <strong>and</strong> that</em></p>',

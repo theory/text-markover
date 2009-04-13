@@ -25,22 +25,6 @@ my $stem_re = qr{
     | [*_](?:[*]{2}|[_]{2})
 }x;
 
-my $lop_split = sub {
-    my $l = shift;
-    my @c = split //, shift;
-    return $c[0] eq $c[1]
-        ? ( [ $l => "$c[0]$c[1]"], [ $l => $c[2]]         )
-        : ( [ $l => $c[0] ],       [ $l => "$c[1]$c[2]" ] );
-};
-
-my $rop_split = sub {
-    my $l = shift;
-    my @c = split //, shift;
-    return $c[1] eq $c[2]
-        ? ( [ $l => $c[0] ],       [ $l => "$c[1]$c[2]" ] )
-        : ( [ $l => "$c[0]$c[1]"], [ $l => $c[2]]         );
-};
-
 sub lexer {
     my ($self, $iter) = @_;
     HOP::Lexer::make_lexer(
@@ -74,9 +58,9 @@ sub lexer {
         } ],
 #        [ BULLET => qr/^[ ]*[-*+][ \t]+(?=\S)/ms, sub { (shift, $2, length $1) } ],
 
-        [ EMMOP => qr/(?<=[^\s_*])$stem_re(?=[^\s_*])/, $lop_split ],
-        [ EMLOP => qr/$stem_re(?=[^\s_*])/, $lop_split ],
-        [ EMROP => qr/(?<=[^\s_*])$stem_re/, $rop_split ],
+        [ STEMMOP => qr/(?<=[^\s_*])$stem_re(?=[^\s_*])/ ],
+        [ STEMLOP => qr/$stem_re(?=[^\s_*])/ ],
+        [ STEMROP => qr/(?<=[^\s_*])$stem_re/ ],
 
         [ EMMOP => qr/(?<=[^\s*_])(?:[*]{1,2})(?=[^\s*_])|(?<=[^\s*_])(?:[_]{1,2})(?=[^\s*_])/ ],
         [ EMLOP => qr/[_]{1,2}(?=[^\s*_])|[*]{1,2}(?=[^\s*_])/ ],
@@ -247,7 +231,7 @@ my $emphasis = T(
     sub { $html_for{em}->( @_[1,0] ) }
 );
 
-# emor := emphasis | lstar | rstar | mstar | lline | rline | mline | not_em
+# emor := emphasis | lstar | rstar | mstar | lline | rline | mline
 my $emor = T(
     alternate(
         $emphasis,
@@ -295,18 +279,55 @@ my $strongor = T(
     $joiner
 );
 
-# spans ::= (text | code | autolink | automail | emor | strongor)+
-my @spans   = ($text, $code, $autolink, $automail, $emor, $strongor);
+# stem ::= (lstem | mstem) not_stem (rstem | mstem)
+my $lstem = match 'STEMLOP';
+my $rstem = match 'STEMROP';
+my $mstem = match 'STEMMOP';
+my $not_stem;
+my $Not_stem = parser { $not_stem->(@_) };
+
+my $stem = T(
+    concatenate(
+        alternate($lstem, $mstem),
+        $Not_stem,
+        alternate($rstem, $mstem)
+    ),
+    sub {
+        my @c = split //, shift;
+        return $c[0] eq $c[1] ? $html_for{strong}->(
+            $html_for{em}->(shift, "$c[0]$c[1]"), $c[2]
+        ) : $html_for{em}->(
+            $html_for{strong}->(shift, $c[0]), "$c[1]$c[2]"
+        );
+    },
+);
+
+# stemor := sttem | lstem | rstem | mstem
+my $stemor = T(
+    alternate(
+        $stem,
+        $lstem, $rstem, $mstem,
+    ),
+    $joiner
+);
+
+# spans ::= (text | code | autolink | automail | stemor | strongor | emor)+
+my @spans   = ($text, $code, $autolink, $automail, $strongor, $emor, $stemor);
 $spans      = T(plus( T( alternate( @spans ), $joiner, ) ), $joiner);
 
 # not_em ::= (text | code | autolink | automail | strongor)+
 $not_em     = T(plus( T( alternate( grep {
-    $_ ne $emor
+    $_ ne $emor && $_ ne $stemor
 } @spans ), $joiner, ) ), $joiner);
 
 # not_strong ::= (text | code | autolink | automail | emor)+
 $not_strong = T(plus( T( alternate( grep {
-    $_ ne $strongor
+    $_ ne $strongor && $_ ne $stemor
+} @spans ), $joiner, ) ), $joiner);
+
+# not_em ::= (text | code | autolink | automail)+
+$not_stem     = T(plus( T( alternate( grep {
+    $_ ne $emor && $_ ne $stemor && $_ ne $emor
 } @spans ), $joiner, ) ), $joiner);
 
 # para ::= spans eob
